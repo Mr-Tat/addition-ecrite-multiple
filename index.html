@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Addition 2 — Addition écrite de 2 à 6 nombres</title>
+<style>
+:root{
+  --bg:#0b1220;--panel:#172033;--panel2:#1d2940;--ink:#f8fafc;--muted:#b8c4d8;--line:#94a3b8;
+  --accent:#8b5cf6;--accent-soft:#312e81;--carry:#f59e0b;--carry-soft:#422006;
+  --ok:#34d399;--ok-soft:#064e3b;--bad:#fb7185;--bad-soft:#4c1625;
+  --cyan:#22d3ee;--cyan-soft:#083344;--gold:#fbbf24;
+  --cell:clamp(38px,4.35vw,62px);--gap:clamp(3px,.65vw,8px)
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 8% 0,#312e81 0,transparent 30rem),
+    radial-gradient(circle at 100% 100%,#164e63 0,transparent 32rem),
+    linear-gradient(145deg,#08111f,#111827 55%,#0f172a)
+}
+button,input,select{font:inherit} button{-webkit-tap-highlight-color:transparent}
+.app{width:min(1500px,calc(100% - 24px));margin:22px auto}
+header{margin-bottom:16px}
+h1{margin:0 0 5px;font-size:clamp(1.7rem,4vw,2.5rem)}
+.subtitle{margin:0;color:var(--muted)}
+.panel,.card,.mode-card{
+  background:rgba(23,32,51,.96);border:1px solid #334155;border-radius:20px;
+  box-shadow:0 14px 36px rgba(0,0,0,.24)
+}
+.hidden{display:none!important}
+
+/* MENU */
+.menu-panel{padding:clamp(18px,4vw,34px)}
+.menu-heading{margin-bottom:18px}.menu-heading h2{margin:0 0 5px}.menu-heading p{margin:0;color:var(--muted)}
+.mode-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) minmax(0,2fr);gap:18px}
+.mode-card{padding:22px;box-shadow:none;display:flex;flex-direction:column;gap:14px;border-width:2px}
+.mode-icon{width:52px;height:52px;border-radius:15px;display:grid;place-items:center;font-size:1.65rem}
+.training{background:#102f35;border-color:#155e75}.training .mode-icon{background:#164e63;color:#67e8f9}.training .mode-description{color:#a5f3fc}
+.classic{background:#1e1b4b;border-color:#4338ca}.classic .mode-icon{background:#312e81;color:#c4b5fd}.classic .mode-description{color:#c7d2fe}
+.sudden{background:#3b1625;border-color:#9f1239}.sudden .mode-icon{background:#4c0519;color:#fda4af}.sudden .mode-description{color:#fecdd3}
+.classic .score-memory-title,.classic .score-line strong{color:#c4b5fd}.classic .score-line{border-top-color:#4338ca}
+.sudden .score-memory-title,.sudden .score-line strong{color:#fda4af}.sudden .score-line{border-top-color:#881337}
+.mode-title{margin:0;font-size:1.45rem}
+.mode-description{margin:-7px 0 0;color:var(--muted);line-height:1.45}
+.mode-settings{margin-top:auto;display:grid;gap:8px}.mode-settings label{color:var(--muted);font-size:.86rem;font-weight:800}
+select{
+  width:100%;min-height:45px;padding:0 12px;border-radius:12px;border:1px solid #475569;
+  background:#0f172a;color:var(--ink);font-weight:750
+}
+.btn{border:0;border-radius:12px;min-height:44px;padding:0 16px;font-weight:850;cursor:pointer}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:#7c3aed;color:#fff}.btn-primary:hover{background:#6d28d9}
+.btn-secondary{background:#334155;color:#f8fafc}.btn-success{background:#059669;color:#fff}
+.btn-training{background:#0891b2;color:#fff}.btn-training:hover{background:#0e7490}
+.btn-gold{background:#be123c;color:#fff}.btn-gold:hover{background:#9f1239}
+.classic-count-wrap{display:grid;gap:8px;margin:2px 0 6px}
+.classic-count-wrap label{color:#c7d2fe;font-size:.86rem;font-weight:800}
+.classic-count-picker{display:flex;gap:8px;flex-wrap:wrap}
+.classic-count-btn{flex:1 1 84px;min-height:42px;border-radius:12px;border:2px solid transparent;font-weight:900;cursor:pointer}
+.classic-count-btn[data-count="4"]{background:#064e3b;color:#6ee7b7;border-color:#059669}
+.classic-count-btn[data-count="10"]{background:#422006;color:#fcd34d;border-color:#d97706}
+.classic-count-btn[data-count="20"]{background:#4c0519;color:#fda4af;border-color:#e11d48}
+.classic-count-btn.active{outline:3px solid rgba(196,181,253,.32);transform:translateY(-1px)}
+.score-memory{padding:2px 0 0;color:#94a3b8;font-size:.79rem;line-height:1.25}
+.score-memory-title{font-weight:800;margin-bottom:3px}
+.score-line{display:flex;justify-content:space-between;gap:16px;max-width:260px;border-top:1px solid #334155;padding:3px 0}
+.classic-best-row{display:flex;justify-content:space-between;gap:10px;border-top:1px solid #4338ca;padding:4px 0;align-items:flex-start}
+.classic-best-row>span{color:#c7d2fe}.classic-best-line{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.classic-best-pill{font-weight:900;border-radius:999px;padding:2px 9px}
+.classic-best-pill.score-4{color:#6ee7b7;background:#064e3b;border:1px solid #059669}
+.classic-best-pill.score-10{color:#fcd34d;background:#422006;border:1px solid #d97706}
+.classic-best-pill.score-20{color:#fda4af;background:#4c0519;border:1px solid #e11d48}
+.ruler-used-score{text-decoration-line:underline!important;text-decoration-thickness:3px!important;text-underline-offset:3px!important}
+@media(max-width:1050px){.mode-grid{grid-template-columns:1fr}}
+
+/* SESSION */
+.session-bar{display:grid;grid-template-columns:1fr auto auto auto auto;gap:10px;align-items:center;padding:12px 14px;margin-bottom:14px}
+.session-mode{font-weight:900;font-size:1.05rem}
+.session-pill{border-radius:999px;padding:7px 11px;background:#0f172a;color:#cbd5e1;font-size:.9rem;font-weight:850;white-space:nowrap;border:1px solid #334155}
+#sessionProgress{
+  padding:9px 18px;border:2px solid #6366f1;background:#1e1b4b;color:#eef2ff;
+  font-size:clamp(1.25rem,2.8vw,1.8rem);font-weight:950;letter-spacing:.02em;
+  box-shadow:0 4px 14px rgba(99,102,241,.20)
+}
+.menu-btn,.score-ruler-btn{min-height:38px;padding:0 12px;white-space:nowrap}
+.score-ruler{
+  position:fixed;left:8px;top:10px;bottom:10px;width:94px;z-index:40;padding:10px 9px 11px;
+  border:2px solid #475569;border-radius:18px;background:rgba(15,23,42,.96);
+  box-shadow:0 12px 34px rgba(0,0,0,.35);backdrop-filter:blur(5px)
+}
+.score-ruler-title{text-align:center;font-size:.78rem;font-weight:950;color:#cbd5e1;margin-bottom:7px;text-transform:uppercase;letter-spacing:.04em}
+.score-ruler-track{position:relative;height:calc(100% - 28px);display:flex;flex-direction:column;justify-content:space-between;align-items:stretch}
+.score-ruler-track::before{content:"";position:absolute;right:12px;top:5px;bottom:5px;width:4px;border-radius:999px;background:#64748b}
+.score-ruler-number{position:relative;z-index:2;width:100%;height:1em;line-height:1;padding-right:30px;text-align:right;color:#94a3b8;font-size:.80rem;font-weight:850}
+.score-ruler-number::after{content:"";position:absolute;right:7px;top:50%;width:11px;height:2px;transform:translateY(-50%);border-radius:99px;background:#64748b}
+.score-ruler-number.current{font-size:1.12rem;font-weight:950;text-decoration-line:underline;text-decoration-thickness:4px;text-underline-offset:4px}
+.score-ruler-number.current::after{right:2px;width:22px;height:5px}
+.score-ruler.total-4 .current{color:#34d399;text-decoration-color:#34d399}.score-ruler.total-4 .current::after{background:#34d399}
+.score-ruler.total-10 .current{color:#fbbf24;text-decoration-color:#fbbf24}.score-ruler.total-10 .current::after{background:#fbbf24}
+.score-ruler.total-20 .current,.score-ruler.total-sudden .current{color:#fb7185;text-decoration-color:#fb7185}
+.score-ruler.total-20 .current::after,.score-ruler.total-sudden .current::after{background:#fb7185}
+.score-ruler-used{text-decoration-line:underline!important;text-decoration-thickness:3px!important;text-underline-offset:3px!important}
+@media(max-width:820px){
+  #sessionProgress{font-size:1.15rem;padding:8px 12px}
+  .score-ruler{left:3px;top:6px;bottom:6px;width:74px;padding:8px 5px 9px}
+  .score-ruler-track::before{right:9px}.score-ruler-number{font-size:.68rem;padding-right:23px}
+  .score-ruler-number.current{font-size:.94rem}.score-ruler-number::after{right:5px}
+}
+
+/* TRAVAIL */
+.card{padding:clamp(14px,2.5vw,26px);overflow:hidden;background:rgba(18,28,46,.97)}
+.instruction{display:flex;gap:10px;padding:10px 13px;border-radius:14px;background:#0f172a;border:1px solid #334155;color:#cbd5e1;margin-bottom:17px;line-height:1.4}
+.instruction strong{color:#fff}
+.main-workspace{display:flex;gap:18px;align-items:center;justify-content:center;min-width:0}
+.pair-scroll{overflow-x:auto;min-width:0;flex:1 1 auto;padding:3px 2px 10px}
+.calculations-pair{display:flex;gap:clamp(52px,6.2vw,96px);align-items:flex-start;justify-content:center;width:max-content;min-width:100%;padding:2px}
+.calc-box{border:1px solid #334155;border-radius:16px;padding:10px;background:#0f172a;position:relative}
+.calc-box + .calc-box::before{content:"";position:absolute;left:-48px;top:4px;bottom:4px;width:4px;border-radius:999px;background:#64748b}
+.calc-label{text-align:center;color:#94a3b8;font-weight:850;font-size:.82rem;margin-bottom:5px}
+.calc-status{min-height:20px;text-align:center;font-size:.82rem;font-weight:850;margin-top:7px}
+.calc-status.ok{color:var(--ok)}.calc-status.bad{color:var(--bad)}.calc-status.info{color:#fbbf24}
+
+.operation{--cols:3;width:max-content;margin:auto;display:grid;grid-template-columns:28px repeat(var(--cols),var(--cell));column-gap:var(--gap);row-gap:5px;align-items:center;justify-items:center;user-select:none}
+.carry-wrap{width:var(--cell);min-height:43px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+.carry-input{
+  width:calc(var(--cell)*.62);height:30px;border:2px dashed #64748b;border-radius:8px;text-align:center;
+  background:#111827;color:#fbbf24;font-size:1.05rem;font-weight:950;outline:none;caret-color:transparent
+}
+.carry-input:focus{border-style:solid;border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.18)}
+.carry-input.filled{border-style:solid;border-color:#d97706;background:#422006}
+.carry-input.good{border-style:solid;border-color:#34d399;background:#064e3b;color:#6ee7b7}
+.carry-input.bad{border-style:solid;border-color:#fb7185;background:#4c1625;color:#fecdd3}
+.carry-input:disabled{opacity:1;-webkit-text-fill-color:currentColor}
+.carry-wrong{height:13px;line-height:12px;color:#fb7185;font-size:.72rem;font-weight:950}
+.carry-wrong:empty{visibility:hidden}
+.digit{width:var(--cell);min-height:52px;display:grid;place-items:center;font-size:clamp(1.45rem,4vw,2.45rem);font-weight:800;font-variant-numeric:tabular-nums}
+.operator{font-size:1.9rem;color:#cbd5e1}
+.bar{grid-column:1/-1;width:100%;height:3px;background:#94a3b8;border-radius:999px;margin:1px 0 5px}
+.answer-wrap{width:var(--cell);min-height:calc(var(--cell) + 22px);display:flex;flex-direction:column;align-items:center}
+.answer-input{
+  width:var(--cell);height:var(--cell);border:2px solid #64748b;border-radius:11px;text-align:center;
+  font-size:clamp(1.4rem,3.8vw,2.2rem);font-weight:850;color:#f8fafc;background:#111827;outline:none;caret-color:transparent
+}
+.answer-input:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.24)}
+.answer-input.correct{border-color:#34d399;background:#064e3b;color:#a7f3d0}
+.answer-input.incorrect{border-color:#fb7185;background:#111827;color:#f8fafc}
+.answer-input:disabled{opacity:1;-webkit-text-fill-color:currentColor}
+.wrong-history{height:20px;line-height:18px;color:#fb7185;font-size:.9rem;font-weight:900;margin-top:2px}
+.wrong-history:empty{visibility:hidden}
+
+/* INDICE */
+.btn-hint{background:#422006;color:#fde68a;border:1px solid #d97706}
+.btn-hint:hover{background:#57300a}
+.carry-input.hint-carry{position:relative;border-style:solid!important;border-color:#22d3ee!important;background:#083344!important;box-shadow:0 0 0 4px rgba(34,211,238,.18);animation:hintPulse .9s ease-in-out 2}
+.carry-wrap.hint-wrap{position:relative}
+.carry-wrap.hint-wrap::before{content:"👇";position:absolute;left:50%;top:-30px;transform:translateX(-50%);font-size:1.65rem;z-index:30;animation:hintFinger .65s ease-in-out infinite alternate;pointer-events:none}
+.answer-input.hint-answer{border-color:#22d3ee!important;box-shadow:0 0 0 4px rgba(34,211,238,.16)!important}
+@keyframes hintPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes hintFinger{from{transform:translate(-50%,-2px)}to{transform:translate(-50%,5px)}}
+
+/* NUMPAD */
+.numpad{flex:0 0 225px;width:225px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:11px;border-radius:18px;background:#0b1220;border:1px solid #334155}
+.numpad-title{grid-column:1/-1;margin:0 0 1px;text-align:center;color:#94a3b8;font-size:.82rem;font-weight:850}
+.num-key{height:51px;border:1px solid #475569;border-radius:11px;background:#1e293b;color:#f8fafc;font-size:1.25rem;font-weight:900;cursor:pointer;box-shadow:0 2px 0 #020617;touch-action:manipulation}
+.num-key:active{transform:translateY(2px);box-shadow:none}.num-key.action{background:#334155}
+.num-key.check{background:#0891b2;border-color:#06b6d4;color:#fff;box-shadow:0 2px 0 #155e75}
+.num-key.primary-text-key{grid-column:1/-1;height:50px;background:#7c3aed;border:2px solid #8b5cf6;color:#fff;font-size:1rem;box-shadow:0 2px 0 #4c1d95}
+.num-key.primary-text-key:active{box-shadow:none}.num-key:disabled{opacity:.45;cursor:default}
+.numpad-note{grid-column:1/-1;margin:1px 2px 0;padding:7px 8px;border-radius:10px;background:#422006;color:#fde68a;border:1px solid #92400e;font-size:.75rem;font-weight:800;text-align:center;line-height:1.25}
+
+/* FEEDBACK / LEGEND */
+.controls{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:17px}
+.feedback{min-height:48px;margin-top:14px;border-radius:14px;display:grid;place-items:center;text-align:center;padding:9px 14px;font-weight:800;color:#cbd5e1;background:#0f172a;border:1px solid #334155}
+.feedback.ok{color:#a7f3d0;background:#064e3b;border-color:#059669}.feedback.bad{color:#fecdd3;background:#4c1625;border-color:#be123c}.feedback.info{color:#fde68a;background:#422006;border-color:#d97706}
+.legend{margin:13px auto 0;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;color:#b8c4d8;font-size:.84rem}
+.legend span{display:inline-flex;align-items:center;gap:5px}.mini{display:inline-grid;place-items:center;width:27px;height:27px;border-radius:7px;font-weight:900}
+.mini.carry{color:#fde68a;background:#422006;border:1px solid #d97706}
+
+/* PLEIN ÉCRAN */
+.fullscreen-btn{
+  position:fixed;top:10px;right:10px;z-index:10000;min-height:40px;padding:0 13px;border:1px solid #475569;
+  border-radius:12px;background:rgba(15,23,42,.96);color:#e2e8f0;font-size:.86rem;font-weight:900;
+  cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.25);backdrop-filter:blur(5px)
+}
+.fullscreen-btn:hover{background:#1e293b}.fullscreen-btn.is-fullscreen{background:#312e81;border-color:#6366f1;color:#ddd6fe}
+
+/* CÉLÉBRATIONS - palette volontairement différente de la soustraction */
+.celebration-layer{position:fixed;inset:0;z-index:9999;pointer-events:none;overflow:hidden;display:grid;place-items:center}
+.celebration-badge{position:relative;z-index:5;min-width:120px;padding:8px 15px;border-radius:999px;background:rgba(15,23,42,.96);border:2px solid #22d3ee;box-shadow:0 8px 26px rgba(34,211,238,.20);text-align:center;font-size:clamp(1rem,3vw,1.45rem);font-weight:950;color:#a5f3fc;animation:celebrationPop .68s cubic-bezier(.2,.9,.25,1.2) both}
+.celebration-layer.big .celebration-badge{min-width:220px;padding:18px 34px;font-size:clamp(1.8rem,6vw,3.5rem);border-color:#c084fc;color:#e9d5ff;box-shadow:0 18px 52px rgba(192,132,252,.28)}
+.fx-piece{position:absolute;left:50%;top:50%;z-index:2;opacity:0;pointer-events:none;will-change:transform,opacity}
+.fx-confetti{width:10px;height:17px;border-radius:3px;background:var(--pc,#22d3ee);animation:fxBurst var(--dur,1.25s) ease-out var(--delay,0s) forwards}
+.fx-glyph{font-size:var(--fs,1.45rem);line-height:1;color:var(--pc,#22d3ee);animation:fxBurst var(--dur,1.25s) ease-out var(--delay,0s) forwards}
+.fx-dot{width:12px;height:12px;border-radius:50%;background:var(--pc,#8b5cf6);box-shadow:0 0 0 5px rgba(255,255,255,.12);animation:fxBurst var(--dur,1.15s) ease-out var(--delay,0s) forwards}
+.fx-rain{position:absolute;top:-9vh;z-index:2;opacity:0;pointer-events:none;color:var(--pc,#22d3ee);font-size:var(--fs,1.4rem);animation:fxRain var(--dur,1.65s) cubic-bezier(.22,.62,.4,1) var(--delay,0s) forwards}
+.fx-firework-core{position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 0 22px 9px var(--pc,#22d3ee);animation:fxCore .7s ease-out var(--delay,0s) forwards;opacity:0}
+@keyframes celebrationPop{0%{opacity:0;transform:scale(.38) rotate(-5deg)}58%{opacity:1;transform:scale(1.12) rotate(2deg)}100%{opacity:1;transform:scale(1)}}
+@keyframes fxBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(0deg)}12%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1) rotate(var(--rot,360deg))}}
+@keyframes fxRain{0%{opacity:0;transform:translateY(-10vh) rotate(0deg)}10%{opacity:1}82%{opacity:1}100%{opacity:0;transform:translateY(118vh) translateX(var(--drift,0px)) rotate(var(--rot,540deg))}}
+@keyframes fxCore{0%{opacity:0;transform:scale(.2)}35%{opacity:1;transform:scale(1.25)}100%{opacity:0;transform:scale(.1)}}
+.celebration-layer.finish-score{background:rgba(8,47,73,.22)}
+.finish-card{position:relative;z-index:6;min-width:min(88vw,390px);padding:22px 28px;border-radius:24px;background:rgba(15,23,42,.98);border:2px solid #22d3ee;box-shadow:0 20px 60px rgba(0,0,0,.36);text-align:center;animation:finishCardIn .75s cubic-bezier(.2,.9,.25,1.15) both}
+.finish-title{font-size:clamp(1.65rem,6vw,3rem);font-weight:950;color:#67e8f9}.finish-score-value{margin-top:6px;font-size:clamp(1.35rem,5vw,2.35rem);font-weight:950;color:#f8fafc}.finish-note{margin-top:5px;color:#cbd5e1;font-weight:800}
+.celebration-layer.record{background:radial-gradient(circle,rgba(88,28,135,.52),rgba(2,6,23,.18) 58%,rgba(2,6,23,0))}
+.celebration-layer.record .finish-card{border-color:#c084fc;box-shadow:0 24px 70px rgba(168,85,247,.28)}
+.celebration-layer.record .finish-title{color:#e9d5ff;font-size:clamp(1.9rem,7vw,3.7rem)}
+.celebration-layer.record .finish-score-value{color:#f0abfc;font-size:clamp(1.55rem,5.5vw,2.8rem)}
+@keyframes finishCardIn{0%{opacity:0;transform:scale(.72) translateY(20px)}65%{opacity:1;transform:scale(1.04) translateY(0)}100%{opacity:1;transform:scale(1)}}
+
+@media(max-width:1180px){.main-workspace{flex-direction:column}.numpad{width:min(100%,340px);flex-basis:auto}}
+@media(max-width:720px){
+  .calc-box + .calc-box::before{left:-26px;width:3px}
+  .session-bar{grid-template-columns:1fr auto}.session-mode{grid-column:1/-1}
+  .calculations-pair{justify-content:flex-start;min-width:max-content}
+}
+@media(max-width:520px){
+  .app{width:min(100% - 10px,1500px);margin:8px auto}.card,.menu-panel{padding:12px 8px 16px;border-radius:16px}
+  .instruction{font-size:.88rem}.operation{grid-template-columns:25px repeat(var(--cols),var(--cell))}
+  .fullscreen-btn{top:5px;right:5px;min-height:36px;padding:0 9px;font-size:.76rem}
+}
+
+/* =========================================================
+   THÈME VISUEL ENRICHI — ADDITION 2
+   Inspiré de la miniature : scène néon plus géométrique / lunaire
+   ========================================================= */
+html,body{overflow-x:hidden}
+body{
+  position:relative;isolation:isolate;
+  background:
+    radial-gradient(circle at 86% 11%, rgba(94,180,255,.26) 0, transparent 8rem),
+    radial-gradient(circle at 14% 18%, rgba(86,225,255,.10) 0 .28rem, transparent .36rem),
+    radial-gradient(circle at 17% 34%, rgba(82,210,255,.11) 0 .18rem, transparent .24rem),
+    radial-gradient(circle at 76% 44%, rgba(255,255,255,.14) 0 .13rem, transparent .18rem),
+    linear-gradient(180deg,#040d27 0%,#04143a 48%,#07112a 100%) !important;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(circle at 10% 14%, rgba(94,226,255,.96) 0 .09rem, transparent .16rem),
+    radial-gradient(circle at 15% 27%, rgba(255,255,255,.9) 0 .06rem, transparent .12rem),
+    radial-gradient(circle at 83% 50%, rgba(255,255,255,.88) 0 .07rem, transparent .13rem),
+    radial-gradient(circle at 91% 8%, rgba(94,180,255,.55) 0 5rem, transparent 5.3rem),
+    radial-gradient(circle at 96% 10%, rgba(255,255,255,.18) 0 4rem, transparent 4.25rem);
+  opacity:.9;
+}
+body::after{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    linear-gradient(135deg, transparent calc(100% - 3px), rgba(55,220,255,.72) calc(100% - 3px), rgba(55,220,255,.72) 100%),
+    linear-gradient(135deg, transparent calc(100% - 3px), rgba(245,72,231,.7) calc(100% - 3px), rgba(245,72,231,.7) 100%),
+    radial-gradient(950px 300px at 50% 100%, rgba(13,34,75,.56) 0 58%, transparent 59%),
+    radial-gradient(900px 420px at 100% 40%, rgba(19,46,112,.22) 0 30%, transparent 31%);
+  background-size:170px 170px, 210px 210px, 100% 100%, 100% 100%;
+  background-position:left -60px top -40px, right -80px center, center bottom, right center;
+  background-repeat:no-repeat;
+  opacity:.52;
+}
+.app{position:relative;z-index:1}
+header h1{text-shadow:0 0 22px rgba(93,222,255,.16),0 0 20px rgba(231,78,255,.14)}
+.panel,.card,.mode-card{
+  background:linear-gradient(180deg, rgba(12,28,66,.93), rgba(9,18,44,.95)) !important;
+  border-color:#355284 !important;
+  box-shadow:0 18px 44px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.03) !important;
+  backdrop-filter:blur(4px);
+}
+.menu-panel,.card{position:relative;overflow:hidden}
+.menu-panel::before,.card::before{
+  content:"";position:absolute;left:-60px;bottom:-70px;width:210px;height:210px;border-radius:999px;
+  background:radial-gradient(circle, rgba(40,216,255,.15), transparent 68%);
+  pointer-events:none;
+}
+.menu-panel::after,.card::after{
+  content:"";position:absolute;right:-90px;top:-90px;width:250px;height:250px;border-radius:999px;
+  background:radial-gradient(circle, rgba(235,73,255,.12), transparent 70%);
+  pointer-events:none;
+}
+.training{background:linear-gradient(180deg,#0d2f3a,#0d2532) !important;border-color:#177b8f !important}
+.training .mode-icon{background:#12495a !important;color:#92f4ff !important}
+.classic{background:linear-gradient(180deg,#1c1846,#17153c) !important;border-color:#5947dd !important}
+.classic .mode-icon{background:#2e2975 !important;color:#d9ccff !important}
+.sudden{background:linear-gradient(180deg,#34142f,#250f22) !important;border-color:#b23670 !important}
+.sudden .mode-icon{background:#481536 !important;color:#ffb2de !important}
+.calc-box{
+  background:linear-gradient(180deg, rgba(9,17,40,.94), rgba(8,15,32,.96)) !important;
+  border-color:#365280 !important;
+  box-shadow:0 12px 28px rgba(0,0,0,.3)
+}
+.calc-box + .calc-box::before{background:linear-gradient(180deg,#2652aa,#5ce1ff,#ea4eff) !important; opacity:.55}
+.instruction,.session-bar{
+  backdrop-filter:blur(3px)
+}
+.numpad{
+  background:linear-gradient(180deg, rgba(8,16,34,.98), rgba(5,11,24,.99)) !important;
+  border-color:#345179 !important;
+  box-shadow:0 16px 34px rgba(0,0,0,.35)
+}
+.num-key{border-color:#48648b !important;background:#162644 !important}
+.num-key.action{background:#223350 !important}
+.num-key.check,.num-key.primary-text-key{
+  background:linear-gradient(180deg,#0991be,#0c67c8) !important;border-color:#56dcff !important
+}
+.answer-input,.carry-input{
+  background:rgba(7,14,31,.94) !important;border-color:#556e96 !important
+}
+.answer-input:focus,.carry-input:focus{
+  box-shadow:0 0 0 3px rgba(235,73,255,.16), 0 0 0 6px rgba(92,225,255,.08) !important
+}
+
+
+/* =========================================================
+   AJUSTEMENT DE LISIBILITÉ DU FOND — ADDITION 2
+   Les panneaux d'exercices deviennent plus transparents.
+   ========================================================= */
+.card{
+  background:linear-gradient(180deg, rgba(9,19,46,.60), rgba(6,14,34,.66)) !important;
+  border-color:rgba(77,133,196,.46) !important;
+  box-shadow:
+    0 18px 44px rgba(0,0,0,.30),
+    inset 0 1px 0 rgba(255,255,255,.05) !important;
+  backdrop-filter:blur(2px);
+}
+.instruction{
+  background:rgba(7,15,33,.54) !important;
+  border-color:rgba(90,136,199,.34) !important;
+}
+.calc-box{
+  background:linear-gradient(180deg, rgba(5,13,31,.40), rgba(6,12,28,.48)) !important;
+  border-color:rgba(89,136,206,.52) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.04) !important;
+  backdrop-filter:blur(1.5px);
+}
+.numpad{
+  background:linear-gradient(180deg, rgba(7,14,31,.60), rgba(5,11,24,.7)) !important;
+  border-color:rgba(89,136,206,.42) !important;
+}
+.session-bar{
+  background:rgba(9,17,38,.42);
+  border:1px solid rgba(89,136,206,.34);
+  border-radius:22px;
+}
+.answer-input,.carry-input{
+  background:rgba(4,10,22,.72) !important;
+}
+
+
+/* =========================================================
+   MODE CLAIR + MENU SIMPLIFIÉ
+   ========================================================= */
+.theme-toggle-btn{
+  position:fixed;top:76px;right:16px;z-index:1200;
+  border:1px solid rgba(255,255,255,.18);border-radius:16px;
+  padding:12px 16px;font:700 1rem/1.1 inherit;cursor:pointer;
+  color:#eef6ff;background:rgba(14,22,40,.92);
+  box-shadow:0 8px 24px rgba(0,0,0,.22);backdrop-filter:blur(6px)
+}
+.theme-toggle-btn:hover{transform:translateY(-1px)}
+@media (max-width:900px){.theme-toggle-btn{top:68px;right:10px;padding:10px 12px;font-size:.95rem}}
+
+.mode-grid.compact-grid{grid-template-columns:minmax(260px,.9fr) minmax(320px,1.2fr) minmax(260px,.9fr);align-items:start;gap:18px}
+.mode-card.settings-card .mode-icon{background:rgba(255,255,255,.12)!important}
+.mode-card.settings-card .mode-description{margin-bottom:12px}
+.mode-card.settings-card .mode-settings{display:grid;gap:10px}
+.mode-card.settings-card .btn{display:none!important}
+.mode-card.settings-card .shared-note{margin:4px 0 0;color:inherit;opacity:.84;font-size:.98rem}
+.mode-card.settings-card .mode-title{margin-bottom:4px}
+.mode-card.settings-card .mode-description{opacity:.95}
+
+.compact-grid .classic .mode-description,
+.compact-grid .sudden .mode-description,
+.compact-grid .settings-card .mode-description{font-size:1rem;line-height:1.35}
+.compact-grid .classic .mode-settings label,
+.compact-grid .classic .mode-settings select,
+.compact-grid .sudden .mode-settings label,
+.compact-grid .sudden .mode-settings select{display:none!important}
+.compact-grid .classic .mode-settings,
+.compact-grid .sudden .mode-settings{display:block!important}
+.compact-grid .classic .btn,
+.compact-grid .sudden .btn{width:100%;min-height:58px;font-size:1.08rem;border-radius:16px}
+.compact-grid .classic-count-wrap{margin:10px 0 14px}
+.compact-grid .classic-count-wrap label{display:none}
+.compact-grid .classic-count-picker{
+  display:grid!important;grid-template-columns:1fr 1fr;gap:12px
+}
+.compact-grid .classic-count-btn{
+  min-height:86px;border-radius:18px;font-size:1.08rem;font-weight:800;
+  display:flex;align-items:center;justify-content:center;text-align:center;padding:10px 8px
+}
+.compact-grid .classic-count-btn.training-choice{
+  background:linear-gradient(180deg,#2a7850,#1d5f3c)!important;
+  border-color:#7fd1a4!important;color:#fff!important
+}
+.compact-grid .classic-count-btn.training-choice.active{
+  box-shadow:0 0 0 4px rgba(127,209,164,.22),0 10px 20px rgba(0,0,0,.18)
+}
+.compact-grid .mode-card{padding:20px}
+.compact-grid .mode-title{margin-bottom:8px}
+.compact-grid .score-memory{margin:10px 0 12px}
+.compact-grid .score-memory-title{font-size:.95rem}
+.compact-grid .menu-heading p{font-size:1rem}
+
+body.light-mode{
+  color:#20324e!important;
+  background:linear-gradient(180deg,#f3f7ff 0%,#ecf2ff 100%)!important
+}
+body.light-mode::before,body.light-mode::after{display:none!important}
+body.light-mode .theme-toggle-btn{
+  color:#13304f;background:rgba(255,255,255,.92);border-color:#bdd0ee
+}
+body.light-mode .panel,
+body.light-mode .card,
+body.light-mode .mode-card{
+  background:rgba(255,255,255,.88)!important;
+  border-color:#bfd0ea!important;
+  box-shadow:0 12px 30px rgba(55,83,128,.12)!important
+}
+body.light-mode .panel::before,body.light-mode .panel::after,
+body.light-mode .card::before,body.light-mode .card::after{display:none!important}
+body.light-mode .subtitle,
+body.light-mode .menu-heading p,
+body.light-mode .mode-description,
+body.light-mode .calc-label,
+body.light-mode .numpad-title,
+body.light-mode .borrow-method-subtitle{color:#48607f!important}
+body.light-mode .training{background:#eef8f2!important;border-color:#b9e3c7!important}
+body.light-mode .classic{background:#f2f6ff!important;border-color:#c8d6ff!important}
+body.light-mode .sudden{background:#fff2f2!important;border-color:#efc2c2!important}
+body.light-mode .settings-card{background:#f7f9fc!important;border-color:#d7e0ec!important}
+body.light-mode .session-bar{background:rgba(255,255,255,.75)!important;border-color:#c9d6e8!important}
+body.light-mode .instruction{background:rgba(255,255,255,.82)!important;border-color:#d7e2f0!important}
+body.light-mode .calc-box{background:rgba(255,255,255,.62)!important;border-color:#c6d4ea!important}
+body.light-mode .numpad{background:rgba(250,252,255,.92)!important;border-color:#c8d6eb!important}
+body.light-mode .num-key{background:#edf3ff!important;border-color:#c0d0eb!important;color:#20324e!important;box-shadow:none!important}
+body.light-mode .num-key.action{background:#e7edf8!important}
+body.light-mode .num-key.check,body.light-mode .num-key.primary-text-key{
+  color:#fff!important;background:linear-gradient(180deg,#36a3d9,#207fb7)!important;border-color:#4cc0f5!important
+}
+body.light-mode .num-key.borrow-key{
+  color:#fff!important;background:linear-gradient(180deg,#cb8c35,#ad6f18)!important;border-color:#dbad5c!important
+}
+body.light-mode .answer-input,
+body.light-mode .carry-input,
+body.light-mode .adjust-input{
+  color:#1b2e4b!important;background:rgba(255,255,255,.86)!important;border-color:#b7c9e4!important
+}
+body.light-mode .feedback{background:rgba(255,255,255,.82)!important;border-color:#d2dceb!important;color:#27405d!important}
+body.light-mode .borrow-method{background:rgba(255,255,255,.86)!important;border-color:#d1dbe9!important}
+body.light-mode .method-option{background:#f7f9fd!important;border-color:#d7e0ec!important;color:#20324e!important}
+
+
+/* =========================================================
+   LANCEMENT DIRECT + COMMANDES ANCRÉES EN HAUT DE PAGE
+   ========================================================= */
+
+/* Plus de bouton "Lancer les calculs" : les 4 choix lancent directement. */
+.compact-grid .classic .mode-settings .btn{
+  display:none!important;
+}
+
+/* Les commandes restent en haut du document et ne flottent plus pendant le défilement. */
+.fullscreen-btn{
+  position:absolute!important;
+  top:10px!important;
+  right:10px!important;
+}
+.theme-toggle-btn{
+  position:absolute!important;
+  top:10px!important;
+  right:175px!important;
+}
+
+/* Légère réserve visuelle dans l'en-tête pour les deux commandes. */
+header{
+  padding-right:360px;
+  min-height:66px;
+}
+
+@media(max-width:760px){
+  header{
+    padding-right:0;
+    padding-top:92px;
+  }
+  .fullscreen-btn{
+    top:8px!important;
+    right:8px!important;
+  }
+  .theme-toggle-btn{
+    top:54px!important;
+    right:8px!important;
+  }
+}
+
+</style>
+</head>
+<body>
+<button class="fullscreen-btn" id="fullscreenBtn" type="button" aria-pressed="false">⛶ Plein écran</button>
+
+<main class="app">
+<header>
+  <h1>Addition 2</h1>
+  <p class="subtitle">Addition écrite de 2 à 6 nombres, avec saisie chiffre par chiffre et retenues.</p>
+</header>
+
+<section id="menuScreen" class="panel menu-panel">
+  <div class="menu-heading">
+    <h2>Choisis ton mode</h2>
+    <p>Choisis de <strong>2 à 6 nombres à additionner</strong>, puis leur taille maximale. Les nombres auront volontairement des longueurs un peu variées.</p>
+  </div>
+
+  <div class="mode-grid">
+    <article class="mode-card training">
+      <div class="mode-icon">🧠</div>
+      <h3 class="mode-title">Entraînement</h3>
+      <p class="mode-description">Deux additions à la fois, sans points et sans limite. Choisis de 2 à 6 nombres par addition.</p>
+      <div class="mode-settings">
+        <label for="trainingAddendCount">Nombres à additionner</label>
+        <select id="trainingAddendCount"></select>
+        <label for="trainingMaxDigits">Taille MAX</label>
+        <select id="trainingMaxDigits"></select>
+        <button class="btn btn-training" id="startTraining" type="button">S’entraîner</button>
+      </div>
+    </article>
+
+    <article class="mode-card classic">
+      <div class="mode-icon">➕</div>
+      <h3 class="mode-title">Calculs</h3>
+      <p class="mode-description">Choisis une série de 4, 10 ou 20 additions, chacune composée de 2 à 6 nombres.</p>
+      <div class="classic-count-wrap">
+        <label>Nombre de calculs</label>
+        <div class="classic-count-picker">
+          <button class="classic-count-btn" data-count="4" type="button">4 calculs</button>
+          <button class="classic-count-btn" data-count="10" type="button">10 calculs</button>
+          <button class="classic-count-btn" data-count="20" type="button">20 calculs</button>
+        </div>
+      </div>
+      <div class="score-memory hidden" id="bestClassicScore"></div>
+      <div class="mode-settings">
+        <label for="classicAddendCount">Nombres à additionner</label>
+        <select id="classicAddendCount"></select>
+        <label for="classicMaxDigits">Taille MAX</label>
+        <select id="classicMaxDigits"></select>
+        <button class="btn btn-primary" id="startClassic" type="button">Lancer les 10 calculs</button>
+      </div>
+    </article>
+
+    <article class="mode-card sudden">
+      <div class="mode-icon">⚡</div>
+      <h3 class="mode-title">Mort subite</h3>
+      <p class="mode-description">Deux additions à la fois, avec 2 à 6 nombres dans chacune. La première erreur arrête la partie.</p>
+      <div class="score-memory hidden" id="bestSuddenScore"></div>
+      <div class="mode-settings">
+        <label for="suddenAddendCount">Nombres à additionner</label>
+        <select id="suddenAddendCount"></select>
+        <label for="suddenMaxDigits">Taille MAX</label>
+        <select id="suddenMaxDigits"></select>
+        <button class="btn btn-gold" id="startSudden" type="button">Lancer la mort subite</button>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section id="gameScreen" class="hidden">
+  <div class="panel session-bar">
+    <div class="session-mode" id="sessionMode">➕ Calculs</div>
+    <div class="session-pill" id="sessionProgress">1–2 / 10</div>
+    <div class="session-pill" id="sessionScore">Score : 0 / 10</div>
+    <button class="btn btn-secondary score-ruler-btn hidden" id="scoreRulerBtn" type="button">📏 Afficher l’échelle</button>
+    <button class="btn btn-secondary menu-btn" id="menuBtn" type="button">Menu</button>
+  </div>
+
+  <aside class="score-ruler hidden" id="scoreRuler" aria-hidden="true">
+    <div class="score-ruler-title" id="scoreRulerTitle">Score</div>
+    <div class="score-ruler-track" id="scoreRulerTrack"></div>
+  </aside>
+
+  <section class="card">
+    <div class="instruction">
+      <div>💡</div>
+      <div id="instructionText"><strong>Commence par les unités.</strong> Écris le chiffre du résultat. Si la somme fait 10 ou plus, la prochaine case active te demande d’écrire la retenue <strong>1</strong> au-dessus de la colonne de gauche.</div>
+    </div>
+
+    <div class="main-workspace">
+      <div class="pair-scroll">
+        <div class="calculations-pair" id="calculationsPair"></div>
+      </div>
+
+      <div class="numpad" id="numpad">
+        <p class="numpad-title" id="numpadTitle">Clavier tactile</p>
+        <button class="num-key" data-key="7" tabindex="-1">7</button>
+        <button class="num-key" data-key="8" tabindex="-1">8</button>
+        <button class="num-key" data-key="9" tabindex="-1">9</button>
+        <button class="num-key" data-key="4" tabindex="-1">4</button>
+        <button class="num-key" data-key="5" tabindex="-1">5</button>
+        <button class="num-key" data-key="6" tabindex="-1">6</button>
+        <button class="num-key" data-key="1" tabindex="-1">1</button>
+        <button class="num-key" data-key="2" tabindex="-1">2</button>
+        <button class="num-key" data-key="3" tabindex="-1">3</button>
+        <button class="num-key action" data-key="backspace" tabindex="-1">⌫</button>
+        <button class="num-key" data-key="0" tabindex="-1">0</button>
+        <button class="num-key check" data-key="check" tabindex="-1">✓</button>
+        <div class="numpad-note">Retenue : lorsqu’elle est nécessaire, écris sa valeur dans la petite case au-dessus.</div>
+        <button class="num-key primary-text-key" id="numpadPrimaryBtn" data-key="check" tabindex="-1">Valider</button>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-success" id="primaryBtn" type="button">Valider</button>
+      <button class="btn btn-secondary" id="resetBtn" type="button">Effacer</button>
+      <button class="btn btn-hint hidden" id="hintBtn" type="button">💡 Indice retenue</button>
+    </div>
+    <div class="feedback" id="feedback" aria-live="polite">Commence par les unités du calcul 1.</div>
+    <div class="legend" id="legend"><span><b class="mini carry">↥</b> retenue à écrire au-dessus de la colonne de gauche</span></div>
+  </section>
+</section>
+</main>
+
+<script>
+(() => {
+  const $=id=>document.getElementById(id);
+  const menuScreen=$('menuScreen'),gameScreen=$('gameScreen'),fullscreenBtn=$('fullscreenBtn');
+  const classicMaxDigits=$('classicMaxDigits'),suddenMaxDigits=$('suddenMaxDigits'),trainingMaxDigits=$('trainingMaxDigits');
+  const classicAddendCount=$('classicAddendCount'),suddenAddendCount=$('suddenAddendCount'),trainingAddendCount=$('trainingAddendCount');
+  const startClassic=$('startClassic'),startSudden=$('startSudden'),startTraining=$('startTraining');
+  const classicCountButtons=[...document.querySelectorAll('.classic-count-btn')];
+  const bestClassicScore=$('bestClassicScore'),bestSuddenScore=$('bestSuddenScore');
+  const sessionModeEl=$('sessionMode'),sessionProgressEl=$('sessionProgress'),sessionScoreEl=$('sessionScore');
+  const scoreRulerBtn=$('scoreRulerBtn'),scoreRuler=$('scoreRuler'),scoreRulerTrack=$('scoreRulerTrack'),scoreRulerTitle=$('scoreRulerTitle');
+  const menuBtn=$('menuBtn'),calculationsPair=$('calculationsPair');
+  const feedbackEl=$('feedback'),primaryBtn=$('primaryBtn'),resetBtn=$('resetBtn'),hintBtn=$('hintBtn');
+  const numpadEl=$('numpad'),numpadPrimaryBtn=$('numpadPrimaryBtn'),numpadTitle=$('numpadTitle'),instructionText=$('instructionText');
+
+  const STORAGE={
+    classic:'addition2_classic_v1',
+    sudden:'addition2_sudden_v1',
+    settings:'addition2_settings_v1',
+    rulerUsage:'addition2_ruler_usage_v1'
+  };
+  let session=null,states=[],phase='answering',active={kind:'answer',calc:0,col:0},scoreRulerVisible=false;
+
+  const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+  const safeGet=(k,f)=>{try{const r=localStorage.getItem(k);return r?JSON.parse(r):f}catch{return f}};
+  const safeSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+
+  /* PLEIN ÉCRAN */
+  function fullscreenElement(){return document.fullscreenElement||document.webkitFullscreenElement||null}
+  function updateFullscreenButton(){
+    const on=!!fullscreenElement();
+    fullscreenBtn.classList.toggle('is-fullscreen',on);
+    fullscreenBtn.textContent=on?'⛶ Quitter le plein écran':'⛶ Plein écran';
+    fullscreenBtn.setAttribute('aria-pressed',on?'true':'false')
+  }
+  async function toggleFullscreen(){
+    try{
+      if(fullscreenElement()){
+        if(document.exitFullscreen)await document.exitFullscreen();else if(document.webkitExitFullscreen)document.webkitExitFullscreen()
+      }else{
+        if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();
+        else if(document.documentElement.webkitRequestFullscreen)document.documentElement.webkitRequestFullscreen()
+      }
+    }catch{}
+    updateFullscreenButton()
+  }
+  document.addEventListener('fullscreenchange',updateFullscreenButton);
+  document.addEventListener('webkitfullscreenchange',updateFullscreenButton);
+  updateFullscreenButton();
+
+  /* CÉLÉBRATIONS */
+  function celebrationColor(i){
+    const colors=['#22d3ee','#8b5cf6','#e879f9','#fbbf24','#2dd4bf','#60a5fa','#c084fc'];
+    return colors[i%colors.length]
+  }
+  function removeCelebrations(){document.querySelectorAll('.celebration-layer').forEach(x=>x.remove())}
+  function addPiece(layer,{x=50,y=50,dx=0,dy=0,color='#22d3ee',glyph='',delay=0,dur=1.2,size=1.4,dot=false}={}){
+    const p=document.createElement('i');p.className=`fx-piece ${glyph?'fx-glyph':dot?'fx-dot':'fx-confetti'}`;
+    if(glyph)p.textContent=glyph;p.style.left=`${x}%`;p.style.top=`${y}%`;
+    p.style.setProperty('--dx',`${dx}px`);p.style.setProperty('--dy',`${dy}px`);p.style.setProperty('--pc',color);
+    p.style.setProperty('--delay',`${delay}s`);p.style.setProperty('--dur',`${dur}s`);p.style.setProperty('--rot',`${rnd(180,900)}deg`);
+    p.style.setProperty('--fs',`${size}rem`);layer.appendChild(p)
+  }
+  function addBurst(layer,count,spread,{glyphs=null,origins=[[50,50]],dots=false}={}){
+    for(let i=0;i<count;i++){
+      const [x,y]=origins[i%origins.length],a=Math.random()*Math.PI*2,d=(.28+Math.random()*.72)*spread;
+      addPiece(layer,{x,y,dx:Math.cos(a)*d,dy:Math.sin(a)*d,color:celebrationColor(i),glyph:glyphs?glyphs[i%glyphs.length]:'',delay:Math.random()*.18,dur:.9+Math.random()*.65,size:1.05+Math.random()*.8,dot:dots})
+    }
+  }
+  function addRain(layer,count,glyphs){
+    for(let i=0;i<count;i++){
+      const p=document.createElement('i');p.className='fx-rain';p.textContent=glyphs[i%glyphs.length];
+      p.style.left=`${4+Math.random()*92}%`;p.style.setProperty('--pc',celebrationColor(i));
+      p.style.setProperty('--delay',`${Math.random()*.35}s`);p.style.setProperty('--dur',`${1.2+Math.random()*.75}s`);
+      p.style.setProperty('--fs',`${1.05+Math.random()*.85}rem`);p.style.setProperty('--drift',`${rnd(-70,70)}px`);
+      p.style.setProperty('--rot',`${rnd(240,720)}deg`);layer.appendChild(p)
+    }
+  }
+  function addFireworks(layer){
+    const origins=[[23,38],[50,25],[77,39]];
+    origins.forEach(([x,y],k)=>{
+      const core=document.createElement('i');core.className='fx-firework-core';core.style.left=`${x}%`;core.style.top=`${y}%`;
+      core.style.setProperty('--pc',celebrationColor(k));core.style.setProperty('--delay',`${k*.12}s`);layer.appendChild(core)
+    });
+    addBurst(layer,84,Math.min(innerWidth,innerHeight)*.26,{origins,glyphs:['✦','✧','★']})
+  }
+  function celebrateFirstTryPage(){
+    removeCelebrations();
+    const big=Math.random()<.17,layer=document.createElement('div');layer.className=`celebration-layer ${big?'big':''}`;
+    const badge=document.createElement('div');badge.className='celebration-badge';
+    if(!big){
+      const variants=[
+        ['Bien joué !',()=>addBurst(layer,9,88,{})],
+        ['✦ Super !',()=>addBurst(layer,8,95,{glyphs:['✦','✧']})],
+        ['✓ Bravo !',()=>addRain(layer,8,['✓','✦'])],
+        ['Très bien !',()=>addBurst(layer,8,82,{dots:true})],
+        ['✨ Parfait !',()=>addBurst(layer,9,90,{glyphs:['✨','✧']})]
+      ];
+      const v=variants[rnd(0,variants.length-1)];badge.textContent=v[0];layer.appendChild(badge);v[1]();document.body.appendChild(layer);setTimeout(()=>layer.remove(),1050)
+    }else{
+      const variants=[
+        ['🎆 Excellent ! 🎆',()=>addFireworks(layer)],
+        ['✨ Fantastique ! ✨',()=>{addFireworks(layer);setTimeout(()=>addFireworks(layer),250)}],
+        ['🌌 Magnifique ! 🌌',()=>{addFireworks(layer);addBurst(layer,26,Math.max(innerWidth,innerHeight)*.22,{glyphs:['✦','✨','★']})}]
+      ];
+      const v=variants[rnd(0,variants.length-1)];badge.textContent=v[0];layer.appendChild(badge);v[1]();document.body.appendChild(layer);setTimeout(()=>layer.remove(),2450)
+    }
+  }
+  function showRecordCelebration(score,total){
+    removeCelebrations();const layer=document.createElement('div');layer.className='celebration-layer record';
+    const card=document.createElement('div');card.className='finish-card';
+    card.innerHTML=`<div class="finish-title">🏆 Nouveau record ! 🏆</div><div class="finish-score-value">${score} / ${total}</div><div class="finish-note">Record battu !</div>`;
+    layer.appendChild(card);addFireworks(layer);setTimeout(()=>addFireworks(layer),230);addRain(layer,38,['✦','✨','★']);
+    document.body.appendChild(layer);setTimeout(()=>layer.remove(),3200)
+  }
+  function showScoreCelebration(score,total,record){
+    removeCelebrations();const layer=document.createElement('div');layer.className='celebration-layer finish-score';
+    const card=document.createElement('div');card.className='finish-card';
+    card.innerHTML=`<div class="finish-title">C’est fini !</div><div class="finish-score-value">Score : ${score} / ${total}</div><div class="finish-note">${Number.isFinite(record)?`Ton record reste ${record}/${total}.`:'Série terminée.'}</div>`;
+    layer.appendChild(card);addBurst(layer,10,110,{dots:true});document.body.appendChild(layer);setTimeout(()=>layer.remove(),2600)
+  }
+
+  /* RÉGLETTE */
+  function buildScoreRuler(){
+    scoreRulerTrack.innerHTML='';
+    for(let n=20;n>=0;n--){const el=document.createElement('div');el.className='score-ruler-number';el.dataset.score=n;el.textContent=n;scoreRulerTrack.appendChild(el)}
+  }
+  function rulerUsageStore(){return safeGet(STORAGE.rulerUsage,{classic:{},sudden:{}})}
+  function markRulerUsed(){
+    if(!session||(session.mode!=='classic'&&session.mode!=='sudden'))return;
+    session.rulerUsed=true;const u=rulerUsageStore();
+    if(session.mode==='classic'){
+      u.classic[session.addendCount]??={};
+      u.classic[session.addendCount][session.maxDigits]??={};
+      u.classic[session.addendCount][session.maxDigits][session.totalCalculs]=true
+    }else{
+      u.sudden[session.addendCount]??={};
+      u.sudden[session.addendCount][session.maxDigits]=true
+    }
+    safeSet(STORAGE.rulerUsage,u)
+  }
+  function updateScoreRuler(){
+    if(!session)return;
+    scoreRuler.classList.remove('total-4','total-10','total-20','total-sudden');
+    if(session.mode==='training'){
+      scoreRulerTrack.querySelectorAll('.score-ruler-number').forEach(el=>el.classList.remove('current'));
+      scoreRulerTitle.textContent='Réglette';sessionScoreEl.classList.remove('score-ruler-used');return
+    }
+    scoreRuler.classList.add(session.mode==='classic'?`total-${session.totalCalculs}`:'total-sudden');
+    const shown=Math.min(20,session.score);
+    scoreRulerTrack.querySelectorAll('.score-ruler-number').forEach(el=>el.classList.toggle('current',+el.dataset.score===shown));
+    scoreRulerTitle.textContent=session.score>20?'Score 20+':'Score';
+    sessionScoreEl.classList.toggle('score-ruler-used',!!session.rulerUsed)
+  }
+  function setScoreRulerVisible(show){
+    const allowed=!!session&&(session.mode==='classic'||session.mode==='sudden'||session.mode==='training');
+    scoreRulerVisible=!!show&&allowed;if(scoreRulerVisible)markRulerUsed();
+    scoreRuler.classList.toggle('hidden',!scoreRulerVisible);scoreRuler.setAttribute('aria-hidden',scoreRulerVisible?'false':'true');
+    scoreRulerBtn.textContent=scoreRulerVisible?(session?.mode==='training'?'📏 Masquer la réglette':'📏 Masquer l’échelle'):(session?.mode==='training'?'📏 Afficher la réglette':'📏 Afficher l’échelle');
+    if(allowed)updateScoreRuler();
+    if(scoreRulerVisible&&session.mode!=='training')setFeedback('📏 Échelle affichée. Ce score restera souligné dans le menu pour indiquer qu’elle a été utilisée.','info')
+  }
+  function toggleScoreRuler(){setScoreRulerVisible(!scoreRulerVisible)}
+  buildScoreRuler();
+
+  /* MENU / SCORES */
+  function fillSelect(s){
+    for(let n=2;n<=8;n++){
+      const o=document.createElement('option');o.value=n;o.textContent=`${n} chiffres max`;s.appendChild(o)
+    }
+  }
+  function fillAddendSelect(s){
+    for(let n=2;n<=6;n++){
+      const o=document.createElement('option');o.value=n;o.textContent=`${n} nombres`;s.appendChild(o)
+    }
+  }
+  fillSelect(classicMaxDigits);fillSelect(suddenMaxDigits);fillSelect(trainingMaxDigits);
+  fillAddendSelect(classicAddendCount);fillAddendSelect(suddenAddendCount);fillAddendSelect(trainingAddendCount);
+
+  const settings=safeGet(STORAGE.settings,{
+    classicMax:5,suddenMax:5,trainingMax:5,classicCount:10,
+    classicAddends:3,suddenAddends:3,trainingAddends:3
+  });
+  classicMaxDigits.value=settings.classicMax||5;
+  suddenMaxDigits.value=settings.suddenMax||5;
+  trainingMaxDigits.value=settings.trainingMax||5;
+  classicAddendCount.value=settings.classicAddends||3;
+  suddenAddendCount.value=settings.suddenAddends||3;
+  trainingAddendCount.value=settings.trainingAddends||3;
+
+  function selectedClassicCount(){return +(classicCountButtons.find(b=>b.classList.contains('active'))?.dataset.count||10)}
+  function updateClassicCountUI(n){
+    classicCountButtons.forEach(b=>{
+      const on=+b.dataset.count===+n;
+      b.classList.toggle('active',on);
+      b.setAttribute('aria-pressed',on?'true':'false')
+    });
+    startClassic.textContent=`Lancer les ${n} calculs`
+  }
+  updateClassicCountUI([4,10,20].includes(+settings.classicCount)?+settings.classicCount:10);
+
+  function saveSettings(){
+    safeSet(STORAGE.settings,{
+      classicMax:+classicMaxDigits.value,suddenMax:+suddenMaxDigits.value,trainingMax:+trainingMaxDigits.value,
+      classicCount:selectedClassicCount(),
+      classicAddends:+classicAddendCount.value,suddenAddends:+suddenAddendCount.value,trainingAddends:+trainingAddendCount.value
+    })
+  }
+  function classicScoreStore(){return safeGet(STORAGE.classic,{})}
+  function suddenScoreStore(){return safeGet(STORAGE.sudden,{})}
+
+  function renderClassicScores(){
+    const addends=+classicAddendCount.value;
+    const scores=classicScoreStore()[addends]||{};
+    const usage=(rulerUsageStore().classic[addends]||{});
+    const rows=[];
+    for(let n=2;n<=8;n++){
+      const row=scores[n];if(!row)continue;
+      const used=usage[n]||{};
+      const pills=[4,10,20].map(c=>{
+        const v=Number(row[c]);
+        return Number.isFinite(v)?`<span class="classic-best-pill score-${c}${used[c]?' ruler-used-score':''}">${v}/${c}</span>`:''
+      }).filter(Boolean);
+      if(pills.length)rows.push(`<div class="classic-best-row"><span>${n} chiffres max</span><div class="classic-best-line">${pills.join('')}</div></div>`)
+    }
+    if(!rows.length){bestClassicScore.innerHTML='';bestClassicScore.classList.add('hidden');return}
+    bestClassicScore.innerHTML=`<div class="score-memory-title">Meilleurs scores · ${addends} nombres</div>`+rows.join('');
+    bestClassicScore.classList.remove('hidden')
+  }
+
+  function renderSuddenScores(){
+    const addends=+suddenAddendCount.value;
+    const scores=suddenScoreStore()[addends]||{};
+    const usage=(rulerUsageStore().sudden[addends]||{});
+    const rows=[];
+    for(let n=2;n<=8;n++){
+      const v=Number(scores[n]);
+      if(Number.isFinite(v))rows.push(`<div class="score-line"><span>${n} chiffres max</span><strong class="${usage[n]?'ruler-used-score':''}">${v}</strong></div>`)
+    }
+    if(!rows.length){bestSuddenScore.innerHTML='';bestSuddenScore.classList.add('hidden');return}
+    bestSuddenScore.innerHTML=`<div class="score-memory-title">Meilleurs scores · ${addends} nombres</div>`+rows.join('');
+    bestSuddenScore.classList.remove('hidden')
+  }
+  function refreshMenuScores(){renderClassicScores();renderSuddenScores()}
+
+  /* GÉNÉRATION DES ADDITIONS */
+  function pow10(n){return 10**n}
+  function digitRTL(n,c){return Math.floor(n/pow10(c))%10}
+
+  function carryPattern(addends,count){
+    const incoming=Array(count).fill(0),outgoing=Array(count).fill(0);
+    let carry=0;
+    for(let c=0;c<count;c++){
+      incoming[c]=carry;
+      let sum=carry;
+      for(const n of addends)sum+=digitRTL(n,c);
+      carry=Math.floor(sum/10);
+      outgoing[c]=carry
+    }
+    return{incoming,outgoing,hasCarry:outgoing.some(v=>v>0)}
+  }
+
+  function generateAddition(maxDigits,addendCount){
+    const wantCarry=Math.random()<.80;
+    for(let tries=0;tries<1800;tries++){
+      // La taille choisie est vraiment la taille MAX :
+      // au moins un nombre l'atteint, les autres varient volontiers de 1 ou 2 chiffres.
+      const count=maxDigits;
+      const lengths=[maxDigits];
+
+      for(let j=1;j<addendCount;j++){
+        const r=Math.random();
+        let len;
+        if(r<.60)len=maxDigits;             // la taille choisie reste clairement la taille visée
+        else if(r<.86)len=maxDigits-1;      // quelques nombres un peu plus courts
+        else len=maxDigits-2;               // parfois deux chiffres de moins
+        lengths.push(Math.max(1,len))
+      }
+
+      // Dès qu'il y a au moins 3 nombres, on cherche généralement
+      // à avoir au moins deux nombres à la taille maximale.
+      if(addendCount>=3){
+        const maxCount=lengths.filter(v=>v===maxDigits).length;
+        if(maxCount<2){
+          const idx=lengths.findIndex((v,j)=>j>0&&v!==maxDigits);
+          if(idx>=0)lengths[idx]=maxDigits
+        }
+      }
+
+      // On garde malgré tout un peu de variété quand il y a assez de termes.
+      if(addendCount>=4&&maxDigits>=2&&lengths.every(v=>v===maxDigits)){
+        lengths[rnd(1,lengths.length-1)]=maxDigits-1
+      }
+      if(addendCount>=5&&maxDigits>=3&&Math.random()<.50&&!lengths.includes(maxDigits-2)){
+        lengths[rnd(1,lengths.length-1)]=maxDigits-2
+      }
+
+      // Mélange l'ordre pour que le nombre le plus long ne soit pas toujours en premier.
+      for(let j=lengths.length-1;j>0;j--){
+        const k=rnd(0,j);
+        [lengths[j],lengths[k]]=[lengths[k],lengths[j]]
+      }
+
+      const addends=lengths.map(len=>rnd(pow10(len-1),pow10(len)-1));
+      const p=carryPattern(addends,count);
+      if(p.hasCarry!==wantCarry&&tries<1700)continue;
+
+      const result=addends.reduce((a,b)=>a+b,0);
+      const answerCount=String(result).length;
+      return{
+        addends,result,count,answerCount,
+        carryExpected:p.incoming,outgoing:p.outgoing,
+        answerValues:Array(answerCount).fill(''),
+        carryValues:Array(count).fill(''),
+        wrongHistory:Array(answerCount).fill(''),
+        carryWrong:Array(count).fill(''),
+        firstTry:true,solved:false
+      }
+    }
+  }
+
+  /* SESSION */
+  function startSession(mode){
+    setScoreRulerVisible(false);saveSettings();
+    const maxDigits=mode==='classic'?+classicMaxDigits.value:mode==='sudden'?+suddenMaxDigits.value:+trainingMaxDigits.value;
+    const addendCount=mode==='classic'?+classicAddendCount.value:mode==='sudden'?+suddenAddendCount.value:+trainingAddendCount.value;
+    session={mode,maxDigits,addendCount,totalCalculs:mode==='classic'?selectedClassicCount():null,score:0,completed:0,rulerUsed:false};
+    menuScreen.classList.add('hidden');gameScreen.classList.remove('hidden');makePair()
+  }
+  function goMenu(){removeCelebrations();setScoreRulerVisible(false);gameScreen.classList.add('hidden');menuScreen.classList.remove('hidden');refreshMenuScores();window.scrollTo({top:0,behavior:'smooth'})}
+  function makePair(){
+    removeCelebrations();clearHint();
+    states=[generateAddition(session.maxDigits,session.addendCount),generateAddition(session.maxDigits,session.addendCount)];phase='answering';
+    active={kind:'answer',calc:0,col:0};calculationsPair.innerHTML='';states.forEach((s,i)=>renderCalc(s,i));
+    setPrimaryLabel('Valider');resetBtn.disabled=false;setNumpadDisabled(false);hintBtn.classList.toggle('hidden',session.mode!=='training');
+    updateInstruction();updateBar();setFeedback('Commence par les unités du calcul 1.','');focusAnswer(0,0)
+  }
+
+  function renderCalc(s,i){
+    const box=document.createElement('div');box.className='calc-box';box.dataset.calc=i;
+    const lab=document.createElement('div');lab.className='calc-label';
+    lab.textContent=`Calcul ${session.completed+i+1} · ${session.addendCount} nombres`;
+    box.appendChild(lab);
+
+    const op=document.createElement('div');op.className='operation';op.dataset.calc=i;
+    op.style.setProperty('--cols',s.answerCount);
+
+    // Ligne des retenues
+    op.appendChild(empty());
+    for(let c=s.answerCount-1;c>=0;c--){
+      if(c>=1&&c<s.count){
+        const wrap=document.createElement('div');wrap.className='carry-wrap';wrap.dataset.carryWrap=c;
+        const inp=document.createElement('input');
+        inp.className='carry-input';inp.type='text';inp.inputMode='none';inp.readOnly=true;inp.autocomplete='off';
+        inp.setAttribute('virtualkeyboardpolicy','manual');inp.maxLength=1;inp.dataset.calc=i;inp.dataset.carryCol=c;
+        inp.addEventListener('focus',()=>{active={kind:'carry',calc:i,col:c};updateNumpadTitle()});
+        inp.addEventListener('keydown',onKey);
+        const wh=document.createElement('div');wh.className='carry-wrong';wh.dataset.carryWrong=c;
+        wrap.append(inp,wh);op.appendChild(wrap)
+      }else op.appendChild(empty())
+    }
+
+    // De 2 à 6 nombres empilés
+    s.addends.forEach((n,row)=>{
+      const sign=document.createElement('div');sign.className='operator';
+      sign.textContent=row===s.addends.length-1?'+':'';
+      op.appendChild(sign);
+      const len=String(n).length;
+      for(let c=s.answerCount-1;c>=0;c--){
+        const d=document.createElement('div');d.className='digit';
+        if(c<len)d.textContent=digitRTL(n,c);
+        op.appendChild(d)
+      }
+    });
+
+    const bar=document.createElement('div');bar.className='bar';op.appendChild(bar);
+
+    op.appendChild(empty());
+    for(let c=s.answerCount-1;c>=0;c--){
+      const wrap=document.createElement('div');wrap.className='answer-wrap';
+      const inp=document.createElement('input');
+      inp.className='answer-input';inp.type='text';inp.inputMode='none';inp.readOnly=true;inp.autocomplete='off';
+      inp.setAttribute('virtualkeyboardpolicy','manual');inp.maxLength=1;inp.dataset.calc=i;inp.dataset.col=c;
+      inp.addEventListener('focus',()=>{active={kind:'answer',calc:i,col:c};updateNumpadTitle()});
+      inp.addEventListener('keydown',onKey);
+      const wh=document.createElement('div');wh.className='wrong-history';wh.dataset.wrong=c;
+      wrap.append(inp,wh);op.appendChild(wrap)
+    }
+
+    box.appendChild(op);
+    const st=document.createElement('div');st.className='calc-status';box.appendChild(st);
+    calculationsPair.appendChild(box)
+  }
+
+  function empty(){return document.createElement('div')}
+  function opFor(i){return calculationsPair.querySelector(`.operation[data-calc="${i}"]`)}
+  function inputFor(i,c){return opFor(i)?.querySelector(`.answer-input[data-col="${c}"]`)}
+  function carryFor(i,c){return opFor(i)?.querySelector(`.carry-input[data-carry-col="${c}"]`)}
+  function status(i,t,type=''){const e=calculationsPair.querySelector(`.calc-box[data-calc="${i}"] .calc-status`);e.textContent=t;e.className=`calc-status${type?' '+type:''}`}
+  function setFeedback(t,type=''){feedbackEl.textContent=t;feedbackEl.className=`feedback${type?' '+type:''}`}
+  function setPrimaryLabel(t){primaryBtn.textContent=t;numpadPrimaryBtn.textContent=t}
+  function updateNumpadTitle(){numpadTitle.textContent=active.kind==='carry'?'Écris la retenue':'Clavier tactile'}
+
+  function focusAnswer(i,c){
+    clearHint();active={kind:'answer',calc:i,col:c};updateNumpadTitle();
+    requestAnimationFrame(()=>{const x=inputFor(i,c);if(x&&!x.disabled)x.focus({preventScroll:true})})
+  }
+  function focusCarry(i,c){
+    clearHint();active={kind:'carry',calc:i,col:c};updateNumpadTitle();
+    requestAnimationFrame(()=>{const x=carryFor(i,c);if(x&&!x.disabled)x.focus({preventScroll:true})})
+  }
+  function nextCalcOrStay(i){
+    if(i===0&&!states[1].solved)focusAnswer(1,0)
+  }
+  function afterAnswer(i,c){
+    const s=states[i],carry=c<s.count-1?s.outgoing[c]:0;
+    if(carry>0&&s.carryValues[c+1]!==String(carry)){
+      focusCarry(i,c+1);
+      setFeedback('Retenue nécessaire : écris maintenant la retenue dans la petite case au-dessus de la colonne de gauche.','info');
+      return
+    }
+    if(c<s.answerCount-1){focusAnswer(i,c+1);return}
+    nextCalcOrStay(i)
+  }
+  function setAnswerDigit(i,c,d){
+    const s=states[i],inp=inputFor(i,c);if(!s||s.solved||!inp||inp.disabled)return;
+    inp.value=d;s.answerValues[c]=d;inp.classList.remove('incorrect');s.wrongHistory[c]='';
+    const wh=opFor(i).querySelector(`[data-wrong="${c}"]`);if(wh)wh.textContent='';
+    afterAnswer(i,c)
+  }
+  function setCarryDigit(i,c,d){
+    const s=states[i],inp=carryFor(i,c);if(!s||s.solved||!inp||inp.disabled)return;
+    inp.value=d;s.carryValues[c]=d;inp.classList.add('filled');inp.classList.remove('bad');s.carryWrong[c]='';
+    const wh=opFor(i).querySelector(`[data-carry-wrong="${c}"]`);if(wh)wh.textContent='';
+    focusAnswer(i,c)
+  }
+
+  function eraseActive(){
+    const s=states[active.calc];if(!s||s.solved)return;
+    if(active.kind==='carry'){
+      const inp=carryFor(active.calc,active.col);
+      if(inp&&inp.value){inp.value='';s.carryValues[active.col]='';inp.classList.remove('filled','bad');return}
+      focusAnswer(active.calc,Math.max(0,active.col-1));return
+    }
+    const inp=inputFor(active.calc,active.col);
+    if(inp&&inp.value){inp.value='';s.answerValues[active.col]='';inp.classList.remove('incorrect');return}
+    if(active.col>0){
+      const c=active.col;
+      if(c<s.count&&s.carryValues[c]){focusCarry(active.calc,c);return}
+      focusAnswer(active.calc,c-1)
+    }
+  }
+  function onKey(e){
+    if(/^\d$/.test(e.key)){e.preventDefault();active.kind==='carry'?setCarryDigit(active.calc,active.col,e.key):setAnswerDigit(active.calc,active.col,e.key);return}
+    if(e.key==='Backspace'||e.key==='Delete'){e.preventDefault();eraseActive();return}
+    if(e.key==='Enter'){e.preventDefault();handlePrimary()}
+  }
+  function numpadKey(k){
+    if(k==='check'){handlePrimary();return}
+    if(k==='backspace'){eraseActive();return}
+    if(/^\d$/.test(k)){active.kind==='carry'?setCarryDigit(active.calc,active.col,k):setAnswerDigit(active.calc,active.col,k)}
+  }
+
+  /* ÉVALUATION / CORRECTION */
+  function expectedAnswerDigits(s){return String(s.result).split('').reverse()}
+  function evaluateCalc(i){
+    const s=states[i],exp=expectedAnswerDigits(s);let filled=true,correct=true;
+    for(let c=0;c<s.answerCount;c++){if(s.answerValues[c]==='')filled=false;if(s.answerValues[c]!==exp[c])correct=false}
+    for(let c=1;c<s.count;c++){
+      const expected=s.carryExpected[c]>0?String(s.carryExpected[c]):'';
+      if(expected!==''&&s.carryValues[c]==='')filled=false;
+      if(s.carryValues[c]!==expected)correct=false
+    }
+    return{filled,correct}
+  }
+  function markErrorsForCorrection(i){
+    const s=states[i],op=opFor(i),exp=expectedAnswerDigits(s);
+    for(let c=0;c<s.answerCount;c++){
+      const inp=inputFor(i,c),wh=op.querySelector(`[data-wrong="${c}"]`);
+      if(s.answerValues[c]!==exp[c]){
+        if(s.answerValues[c]!=='')s.wrongHistory[c]=s.answerValues[c];
+        inp.value='';s.answerValues[c]='';inp.classList.add('incorrect');if(wh)wh.textContent=s.wrongHistory[c]
+      }
+    }
+    for(let c=1;c<s.count;c++){
+      const inp=carryFor(i,c),wh=op.querySelector(`[data-carry-wrong="${c}"]`),expected=s.carryExpected[c]>0?String(s.carryExpected[c]):'';
+      if(s.carryValues[c]!==expected){
+        if(s.carryValues[c]!=='')s.carryWrong[c]=s.carryValues[c];
+        inp.value='';s.carryValues[c]='';inp.classList.remove('filled');inp.classList.add('bad');if(wh)wh.textContent=s.carryWrong[c]
+      }
+    }
+  }
+  function lockCalc(i){
+    const s=states[i],op=opFor(i);s.solved=true;
+    op.querySelectorAll('.answer-input').forEach(x=>{x.disabled=true;x.classList.remove('incorrect');x.classList.add('correct')});
+    op.querySelectorAll('.carry-input').forEach(x=>{x.disabled=true;x.classList.remove('bad');if(x.value)x.classList.add('good')})
+  }
+  function firstUnsolvedTarget(){
+    for(let i=0;i<states.length;i++){
+      if(states[i].solved)continue;
+      const s=states[i];
+      for(let c=0;c<s.answerCount;c++){if(s.answerValues[c]==='')return{kind:'answer',calc:i,col:c}}
+      for(let c=1;c<s.count;c++){if(s.carryExpected[c]>0&&s.carryValues[c]==='')return{kind:'carry',calc:i,col:c}}
+    }
+    return null
+  }
+  function focusTarget(t){if(!t)return;t.kind==='carry'?focusCarry(t.calc,t.col):focusAnswer(t.calc,t.col)}
+
+  function verifyPair(){
+    const pageWasFirstTry=states.every(s=>s.firstTry&&!s.solved);
+    const evals=states.map((s,i)=>s.solved?{filled:true,correct:true}:evaluateCalc(i));
+    if(evals.some((r,i)=>!states[i].solved&&!r.filled)){setFeedback('Complète les chiffres du résultat et les retenues nécessaires avant de valider.','info');focusTarget(firstUnsolvedTarget());return}
+
+    if(session.mode==='sudden'){
+      let newly=0;
+      for(let i=0;i<states.length;i++){
+        if(states[i].solved)continue;
+        if(evals[i].correct){
+          lockCalc(i);status(i,'Correct','ok');session.score++;session.completed++;newly++;saveSuddenBest()
+        }else{
+          markErrorsForCorrection(i);phase='ended';setNumpadDisabled(true);resetBtn.disabled=true;setPrimaryLabel('Retour au menu');
+          saveSuddenBest();status(i,'Erreur : partie terminée','bad');setFeedback(`Mort subite terminée. Score : ${session.score}.`,'bad');updateBar();return
+        }
+      }
+      phase='review';setNumpadDisabled(true);resetBtn.disabled=true;setPrimaryLabel('Passer aux 2 calculs suivants');
+      setFeedback(`Parfait : +${newly}. Score ${session.score}.`,'ok');updateBar();if(pageWasFirstTry)celebrateFirstTryPage();return
+    }
+
+    if(session.mode==='training'){
+      states.forEach((s,i)=>{
+        if(s.solved)return;
+        if(evals[i].correct){lockCalc(i);status(i,'Correct','ok')}
+        else{s.firstTry=false;markErrorsForCorrection(i);status(i,'Corrige les cases rouges','bad')}
+      });
+      if(states.every(s=>s.solved)){
+        session.completed+=2;phase='review';setNumpadDisabled(true);resetBtn.disabled=true;setPrimaryLabel('Passer aux 2 calculs suivants');
+        setFeedback('Les deux additions sont correctes. Tu peux continuer.','ok');if(pageWasFirstTry)celebrateFirstTryPage()
+      }else{setFeedback('Corrige les cases rouges, puis valide à nouveau.','bad');focusTarget(firstUnsolvedTarget())}
+      updateBar();return
+    }
+
+    // Calculs
+    states.forEach((s,i)=>{
+      if(s.solved)return;
+      if(evals[i].correct){
+        lockCalc(i);status(i,'Correct : +1 point','ok');if(s.firstTry)session.score++
+      }else{
+        s.firstTry=false;markErrorsForCorrection(i);status(i,'À corriger : 0 point','bad')
+      }
+    });
+    if(states.every(s=>s.solved)){
+      session.completed+=2;
+      if(session.completed>=session.totalCalculs)finishClassic();
+      else{
+        phase='review';setNumpadDisabled(true);resetBtn.disabled=true;setPrimaryLabel('Passer aux 2 calculs suivants');
+        setFeedback('Les deux additions sont correctes. Tu peux continuer.','ok');if(pageWasFirstTry)celebrateFirstTryPage()
+      }
+    }else{
+      setFeedback('Corrige les cases rouges, puis valide à nouveau.','bad');focusTarget(firstUnsolvedTarget())
+    }
+    updateBar()
+  }
+
+  function verifyCorrections(){
+    let all=true;
+    states.forEach((s,i)=>{
+      if(s.solved)return;const r=evaluateCalc(i);
+      if(r.filled&&r.correct){lockCalc(i);status(i,session.mode==='training'?'Corrigé':'Corrigé : 0 point','info')}
+      else{all=false;markErrorsForCorrection(i);status(i,'Corrige les cases rouges','bad')}
+    });
+    if(states.every(s=>s.solved)){
+      session.completed+=2;
+      if(session.mode==='classic'&&session.completed>=session.totalCalculs)finishClassic();
+      else{
+        phase='review';setNumpadDisabled(true);resetBtn.disabled=true;setPrimaryLabel('Passer aux 2 calculs suivants');
+        setFeedback('Les deux additions sont maintenant correctes. Tu peux continuer.','ok')
+      }
+    }else{setFeedback('Il reste une correction à faire.','bad');focusTarget(firstUnsolvedTarget())}
+    updateBar()
+  }
+
+  function handlePrimary(){
+    if(phase==='ended'){goMenu();return}
+    if(phase==='review'){makePair();return}
+    if(states.some(s=>!s.solved&&!s.firstTry)&&(session.mode==='classic'||session.mode==='training')){verifyCorrections();return}
+    verifyPair()
+  }
+
+  /* SCORES */
+  function finishClassic(){
+    const scores=classicScoreStore();
+    scores[session.addendCount]??={};scores[session.addendCount][session.maxDigits]??={};
+    const bucket=scores[session.addendCount][session.maxDigits];
+    const old=Number(bucket[session.totalCalculs]),isRecord=!Number.isFinite(old)||session.score>old;
+    if(isRecord)bucket[session.totalCalculs]=session.score;
+    safeSet(STORAGE.classic,scores);
+    phase='ended';setNumpadDisabled(true);resetBtn.disabled=true;setPrimaryLabel('Retour au menu');
+    setFeedback(isRecord?`Nouveau record : ${session.score}/${session.totalCalculs} !`:`Série terminée : ${session.score}/${session.totalCalculs}.`,'ok');
+    updateBar();isRecord?showRecordCelebration(session.score,session.totalCalculs):showScoreCelebration(session.score,session.totalCalculs,old)
+  }
+  function saveSuddenBest(){
+    const scores=suddenScoreStore();scores[session.addendCount]??={};
+    const bucket=scores[session.addendCount],old=Number(bucket[session.maxDigits]);
+    if(!Number.isFinite(old)||session.score>old){bucket[session.maxDigits]=session.score;safeSet(STORAGE.sudden,scores)}
+  }
+
+  /* INDICE ENTRAÎNEMENT : uniquement la retenue */
+  function clearHint(){
+    calculationsPair.querySelectorAll('.hint-carry,.hint-wrap,.hint-answer').forEach(e=>e.classList.remove('hint-carry','hint-wrap','hint-answer'))
+  }
+  function showTrainingHint(){
+    if(!session||session.mode!=='training'||phase!=='answering')return;
+    clearHint();
+    const i=active.calc,s=states[i];if(!s||s.solved)return;
+
+    if(active.kind==='carry'){
+      const inp=carryFor(i,active.col),wrap=inp?.closest('.carry-wrap');
+      if(inp)inp.classList.add('hint-carry');if(wrap)wrap.classList.add('hint-wrap');
+      setFeedback('💡 Retenue : compte combien de dizaines sont formées dans la colonne précédente, puis écris ce nombre ici.','info');
+      return
+    }
+
+    const c=active.col,carry=c<s.count-1?s.outgoing[c]:0;
+    if(carry>0){
+      const inp=carryFor(i,c+1),wrap=inp?.closest('.carry-wrap');
+      if(inp)inp.classList.add('hint-carry');if(wrap)wrap.classList.add('hint-wrap');
+      setFeedback('💡 La somme de cette colonne dépasse 9 : garde le chiffre des unités dans le résultat, puis écris le nombre de dizaines en retenue au-dessus de la colonne de gauche.','info')
+    }else{
+      const inp=inputFor(i,c);if(inp)inp.classList.add('hint-answer');
+      setFeedback('💡 Ici, il n’y a pas de retenue à écrire. Continue simplement le résultat.','info')
+    }
+  }
+
+  /* BARRE / AIDE */
+  function updateInstruction(){
+    const mode=session.mode==='training'?'En entraînement, le bouton Indice montre uniquement où placer la retenue.':session.mode==='classic'?'Une erreur enlève le point de ce calcul, mais elle doit être corrigée avant de continuer.':'La première erreur termine la partie.';
+    instructionText.innerHTML=`<strong>${session.addendCount} nombres à additionner.</strong> Commence par les unités. Écris le chiffre des unités de la somme de la colonne. S’il reste une ou plusieurs dizaines, écris ensuite cette retenue dans la petite case au-dessus de la colonne de gauche. ${mode}`
+  }
+  function updateBar(){
+    if(session.mode==='classic'){
+      sessionModeEl.textContent='➕ Calculs';sessionProgressEl.textContent=phase==='ended'?`${session.totalCalculs} / ${session.totalCalculs}`:`${session.completed+1}–${Math.min(session.completed+2,session.totalCalculs)} / ${session.totalCalculs}`;
+      sessionScoreEl.textContent=`Score : ${session.score} / ${session.totalCalculs}`;scoreRulerBtn.classList.remove('hidden');updateScoreRuler()
+    }else if(session.mode==='sudden'){
+      sessionModeEl.textContent='⚡ Mort subite';sessionProgressEl.textContent=phase==='ended'?`${session.completed}`:`${session.completed+1}–${session.completed+2}`;
+      sessionScoreEl.textContent=`Score : ${session.score}`;scoreRulerBtn.classList.remove('hidden');updateScoreRuler()
+    }else{
+      sessionModeEl.textContent='🧠 Entraînement';sessionProgressEl.textContent=`${session.completed+1}–${session.completed+2}`;sessionScoreEl.textContent='Sans points';
+      scoreRulerBtn.classList.remove('hidden');updateScoreRuler()
+    }
+  }
+  function setNumpadDisabled(disabled){numpadEl.querySelectorAll('.num-key').forEach(b=>{b.disabled=disabled&&b.dataset.key!=='check'});hintBtn.disabled=disabled}
+  function resetCurrent(){
+    if(phase!=='answering')return;clearHint();
+    states.forEach((s,i)=>{
+      if(s.solved)return;s.answerValues.fill('');s.carryValues.fill('');s.wrongHistory.fill('');s.carryWrong.fill('');
+      opFor(i).querySelectorAll('.answer-input').forEach(x=>{x.value='';x.classList.remove('incorrect','correct')});
+      opFor(i).querySelectorAll('.wrong-history,.carry-wrong').forEach(x=>x.textContent='');
+      opFor(i).querySelectorAll('.carry-input').forEach(x=>{x.value='';x.classList.remove('filled','bad','good')})
+    });
+    setFeedback('Réponses et retenues effacées.','');focusAnswer(0,0)
+  }
+
+  /* ÉVÉNEMENTS */
+  fullscreenBtn.addEventListener('click',toggleFullscreen);
+  startClassic.addEventListener('click',()=>startSession('classic'));
+  startSudden.addEventListener('click',()=>startSession('sudden'));
+  startTraining.addEventListener('click',()=>startSession('training'));
+  menuBtn.addEventListener('click',goMenu);scoreRulerBtn.addEventListener('click',toggleScoreRuler);
+  primaryBtn.addEventListener('click',handlePrimary);resetBtn.addEventListener('click',resetCurrent);hintBtn.addEventListener('click',showTrainingHint);
+  classicCountButtons.forEach(b=>b.addEventListener('click',()=>{updateClassicCountUI(+b.dataset.count);saveSettings();refreshMenuScores()}));
+  classicMaxDigits.addEventListener('change',()=>{saveSettings();refreshMenuScores()});
+  suddenMaxDigits.addEventListener('change',()=>{saveSettings();refreshMenuScores()});
+  trainingMaxDigits.addEventListener('change',saveSettings);
+  classicAddendCount.addEventListener('change',()=>{saveSettings();refreshMenuScores()});
+  suddenAddendCount.addEventListener('change',()=>{saveSettings();refreshMenuScores()});
+  trainingAddendCount.addEventListener('change',saveSettings);
+  numpadEl.addEventListener('mousedown',e=>{if(e.target.closest('.num-key'))e.preventDefault()});
+  numpadEl.addEventListener('click',e=>{const b=e.target.closest('.num-key');if(b)numpadKey(b.dataset.key)});
+
+  refreshMenuScores()
+})();
+</script>
+
+<script>
+(() => {
+  const classicCard=document.querySelector('.mode-card.classic');
+  const suddenCard=document.querySelector('.mode-card.sudden');
+  const trainingCard=document.querySelector('.mode-card.training');
+  const menuGrid=document.querySelector('.mode-grid');
+  const trainingMax=document.getElementById('trainingMaxDigits');
+  const classicMax=document.getElementById('classicMaxDigits');
+  const suddenMax=document.getElementById('suddenMaxDigits');
+  const trainingAdd=document.getElementById('trainingAddendCount');
+  const classicAdd=document.getElementById('classicAddendCount');
+  const suddenAdd=document.getElementById('suddenAddendCount');
+  const startTraining=document.getElementById('startTraining');
+  const startClassic=document.getElementById('startClassic');
+  const menuHeading=document.querySelector('.menu-heading p');
+  if(!classicCard||!suddenCard||!trainingCard||!trainingMax||!classicMax||!suddenMax||!trainingAdd||!classicAdd||!suddenAdd||!startTraining||!startClassic)return;
+
+  menuGrid.classList.add('compact-grid');
+  menuHeading.innerHTML='Un seul réglage pour <strong>Calculs</strong> et <strong>Mort subite</strong>.';
+
+  const THEME_KEY='addition2_theme_mode_v1';
+  const themeBtn=document.createElement('button');
+  themeBtn.type='button'; themeBtn.className='theme-toggle-btn'; themeBtn.id='themeToggleBtn';
+  function applyTheme(mode){
+    document.body.classList.toggle('light-mode', mode==='light');
+    themeBtn.textContent=mode==='light'?'🌙 Activer le mode sombre':'☀️ Activer le mode clair';
+    try{localStorage.setItem(THEME_KEY, JSON.stringify(mode))}catch{}
+  }
+  let saved='dark';
+  try{saved=JSON.parse(localStorage.getItem(THEME_KEY)||'"dark"')}catch{}
+  applyTheme(saved==='light'?'light':'dark');
+  themeBtn.addEventListener('click',()=>applyTheme(document.body.classList.contains('light-mode')?'dark':'light'));
+  document.body.appendChild(themeBtn);
+
+  trainingCard.classList.remove('training');
+  trainingCard.classList.add('settings-card');
+  const oldTrainingTitle=trainingCard.querySelector('.mode-title');
+  const oldTrainingDesc=trainingCard.querySelector('.mode-description');
+  if(oldTrainingTitle)oldTrainingTitle.textContent='Réglages';
+  if(oldTrainingDesc)oldTrainingDesc.textContent='Ces réglages servent pour Calculs, Entraînement et Mort subite.';
+  const icon=trainingCard.querySelector('.mode-icon'); if(icon)icon.textContent='⚙️';
+  const settingsWrap=trainingCard.querySelector('.mode-settings');
+  settingsWrap.innerHTML='';
+  const lblA=document.createElement('label'); lblA.setAttribute('for','trainingAddendCount'); lblA.textContent='Nombres à additionner';
+  const lblM=document.createElement('label'); lblM.setAttribute('for','trainingMaxDigits'); lblM.textContent='Taille des nombres';
+  settingsWrap.append(lblA, trainingAdd, lblM, trainingMax);
+  const note=document.createElement('p'); note.className='shared-note'; note.textContent='Choix commun à tous les modes.';
+  settingsWrap.append(note);
+  startTraining.style.display='none';
+  settingsWrap.append(startTraining);
+
+  classicCard.querySelector('.mode-title').textContent='Calculs';
+  classicCard.querySelector('.mode-description').textContent='Choisis un entraînement ou une série de 4, 10 ou 20 calculs.';
+  const countWrap=classicCard.querySelector('.classic-count-wrap');
+  const picker=countWrap.querySelector('.classic-count-picker');
+  const trainingChoice=document.createElement('button');
+  trainingChoice.type='button'; trainingChoice.className='classic-count-btn training-choice'; trainingChoice.id='trainingChoiceBtn';
+  trainingChoice.textContent='Entraînement';
+  picker.prepend(trainingChoice);
+
+  suddenCard.querySelector('.mode-description').textContent='Continue jusqu’à la première erreur.';
+  const suddenBtn=suddenCard.querySelector('.btn');
+  if(suddenBtn)suddenBtn.textContent='Lancer la mort subite';
+
+  const unifiedMax=classicMax.value||trainingMax.value||suddenMax.value||'5';
+  [trainingMax,classicMax,suddenMax].forEach(el=>el.value=unifiedMax);
+  const unifiedAdd=classicAdd.value||trainingAdd.value||suddenAdd.value||'3';
+  [trainingAdd,classicAdd,suddenAdd].forEach(el=>el.value=unifiedAdd);
+
+  function syncShared(){
+    [classicMax,suddenMax].forEach(el=>{el.value=trainingMax.value; el.dispatchEvent(new Event('change',{bubbles:true}))});
+    [classicAdd,suddenAdd].forEach(el=>{el.value=trainingAdd.value; el.dispatchEvent(new Event('change',{bubbles:true}))});
+    trainingMax.dispatchEvent(new Event('change',{bubbles:true}));
+    trainingAdd.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+  trainingMax.addEventListener('change', syncShared);
+  trainingAdd.addEventListener('change', syncShared);
+
+  const countButtons=[...picker.querySelectorAll('.classic-count-btn:not(.training-choice)')];
+  let trainingSelected=false;
+  function refreshChoiceUI(){
+    trainingChoice.classList.toggle('active',trainingSelected);
+    trainingChoice.setAttribute('aria-pressed',trainingSelected?'true':'false');
+    if(trainingSelected){
+      countButtons.forEach(btn=>{btn.classList.remove('active');btn.setAttribute('aria-pressed','false')});
+      startClassic.textContent='Lancer l’entraînement';
+    }else{
+      const active=countButtons.find(btn=>btn.classList.contains('active')) || countButtons.find(btn=>btn.dataset.count==='10');
+      if(active){active.classList.add('active');active.setAttribute('aria-pressed','true');startClassic.textContent=`Lancer les ${active.dataset.count} calculs`;}
+    }
+  }
+  trainingChoice.addEventListener('click',()=>{trainingSelected=true; refreshChoiceUI()});
+  countButtons.forEach(btn=>btn.addEventListener('click',()=>{trainingSelected=false; setTimeout(refreshChoiceUI,0)}));
+  startClassic.addEventListener('click',(e)=>{
+    if(trainingSelected){
+      e.preventDefault(); e.stopImmediatePropagation();
+      startTraining.click();
+    }
+  }, true);
+  refreshChoiceUI();
+})();
+</script>
+
+
+<script>
+(() => {
+  const picker=document.querySelector('.compact-grid .classic .classic-count-picker');
+  const startClassic=document.getElementById('startClassic');
+  const startTraining=document.getElementById('startTraining');
+  if(!picker||!startClassic||!startTraining)return;
+
+  // Entraînement : lancement immédiat.
+  const trainingChoice=document.getElementById('trainingChoiceBtn');
+  if(trainingChoice){
+    trainingChoice.addEventListener('click',()=>{
+      // Le script du menu a déjà mis ce choix en état actif.
+      startTraining.click();
+    });
+  }
+
+  // 4 / 10 / 20 : le clic choisit la série puis la lance directement.
+  picker.querySelectorAll('.classic-count-btn[data-count]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      // Les gestionnaires déjà présents ont d'abord mémorisé le nombre choisi.
+      startClassic.click();
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
