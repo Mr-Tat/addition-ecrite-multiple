@@ -2325,6 +2325,25 @@ body.light-mode .hard-level-card h3 strong{
   color:#6f1d31!important;
 }
 
+
+/* =========================================================
+   V34 — les 2 niveaux HARD sont centrés dans la page
+   ========================================================= */
+.hard-level-grid{
+  grid-template-columns:repeat(2,minmax(260px,360px)) !important;
+  justify-content:center !important;
+  align-items:stretch !important;
+  width:100% !important;
+  max-width:780px !important;
+  margin:0 auto !important;
+}
+@media(max-width:760px){
+  .hard-level-grid{
+    grid-template-columns:minmax(0,420px) !important;
+    max-width:440px !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2335,7 +2354,7 @@ body.light-mode .hard-level-card h3 strong{
   <h1>Addition de plusieurs nombres</h1>
   <div class="subtitle-row">
   <p class="subtitle">Addition écrite de plusieurs nombres, avec saisie chiffre par chiffre et retenues.</p>
-  <span class="app-version">v32</span>
+  <span class="app-version">v35</span>
 </div>
 </header>
 
@@ -2451,28 +2470,67 @@ body.light-mode .hard-level-card h3 strong{
 </main>
 
 <script>
-function enregistrerScoreMathas(score, total, niveau) {
-  const key = "mathas_scores_" + window.location.pathname.toLowerCase();
+function estMeilleurResultat(nouveau, ancien) {
+  if (!ancien) return true;
 
-  let scores = [];
+  const tauxNouveau = nouveau.total > 0
+    ? nouveau.score / nouveau.total
+    : 0;
 
-  try {
-    scores = JSON.parse(localStorage.getItem(key)) || [];
-  } catch {
-    scores = [];
+  const tauxAncien = ancien.total > 0
+    ? ancien.score / ancien.total
+    : 0;
+
+  if (tauxNouveau !== tauxAncien) {
+    return tauxNouveau > tauxAncien;
   }
 
-  scores.unshift({
+  if (nouveau.total !== ancien.total) {
+    return nouveau.total > ancien.total;
+  }
+
+  if ((nouveau.niveauRang ?? 0) !== (ancien.niveauRang ?? 0)) {
+    return (nouveau.niveauRang ?? 0) > (ancien.niveauRang ?? 0);
+  }
+
+  return true;
+}
+
+function enregistrerResultatMathas(score, total, niveau, niveauRang) {
+  const key = "mathas_scores_" + window.location.pathname.toLowerCase();
+
+  const nouveauResultat = {
     score,
     total,
     niveau,
+    niveauRang,
     date: new Date().toISOString()
-  });
+  };
 
-  localStorage.setItem(
-    key,
-    JSON.stringify(scores.slice(0, 3))
-  );
+  let donnees = {
+    dernier: null,
+    meilleur: null
+  };
+
+  try {
+    const existant = JSON.parse(localStorage.getItem(key));
+    if (existant && typeof existant === "object") {
+      donnees = {
+        dernier: existant.dernier ?? null,
+        meilleur: existant.meilleur ?? null
+      };
+    }
+  } catch {
+    // Si les anciennes données sont illisibles, on repart proprement.
+  }
+
+  donnees.dernier = nouveauResultat;
+
+  if (estMeilleurResultat(nouveauResultat, donnees.meilleur)) {
+    donnees.meilleur = nouveauResultat;
+  }
+
+  localStorage.setItem(key, JSON.stringify(donnees));
 }
 </script>
 <script>
@@ -2642,7 +2700,7 @@ function enregistrerScoreMathas(score, total, niveau) {
   /* MENU / SCORES */
   function fillSelect(s){
     [[5,'Niveau 1'],[6,'Niveau 2'],[7,'Niveau 3']].forEach(([value,label])=>{
-      const o=document.createElement('option');o.value=value;o.textContent=label;s.appendChild(o)
+      const o=document.createElement('option');o.value=value;o.textContent=label;o.defaultSelected=value===6;s.appendChild(o)
     })
   }
   function normalizeLevelMax(v){v=+v||5;return v<=5?5:v===6?6:7}
@@ -2658,7 +2716,7 @@ function enregistrerScoreMathas(score, total, niveau) {
   fillAddendSelect(classicAddendCount);fillAddendSelect(suddenAddendCount);fillAddendSelect(trainingAddendCount);
 
   const settings=safeGet(STORAGE.settings,{
-    classicMax:5,suddenMax:5,trainingMax:5,classicCount:10,
+    classicMax:6,suddenMax:6,trainingMax:6,classicCount:10,
     classicAddends:3,suddenAddends:3,trainingAddends:3
   });
   classicMaxDigits.value=normalizeLevelMax(settings.classicMax);
@@ -2998,7 +3056,7 @@ function enregistrerScoreMathas(score, total, niveau) {
           lockCalc(i);status(i,'Correct','ok');session.score++;session.completed++;newly++;saveSuddenBest()
         }else{
           markErrorsForCorrection(i);phase='ended';setNumpadDisabled(true);resetBtn.disabled=true;setPrimaryLabel('Retour au menu');
-          saveSuddenBest();window.__setLastWork&&window.__setLastWork({label:`Mort subite · Niveau ${session.level}`,score:String(session.score)});enregistrerScoreMathas(session.score,session.score+1,`Niveau ${session.level}`);status(i,'Erreur : partie terminée','bad');setFeedback(`Mort subite terminée. Score : ${session.score}.`,'bad');updateBar();return
+          saveSuddenBest();window.__setLastWork&&window.__setLastWork({label:`Mort subite · Niveau ${session.level}`,score:String(session.score)});enregistrerResultatMathas(session.score,session.score+1,`Niveau ${session.level}`,session.level);status(i,'Erreur : partie terminée','bad');setFeedback(`Mort subite terminée. Score : ${session.score}.`,'bad');updateBar();return
         }
       }
       if(states.every(s=>s.solved)){
@@ -3103,7 +3161,7 @@ function enregistrerScoreMathas(score, total, niveau) {
     phase='ended';setNumpadDisabled(true);resetBtn.disabled=true;setPrimaryLabel('Retour au menu');
     setFeedback(isRecord?`Nouveau record : ${session.score}/${session.totalCalculs} !`:`Série terminée : ${session.score}/${session.totalCalculs}.`,'ok');
     window.__setLastWork&&window.__setLastWork({label:`Calculs · Niveau ${session.level}`,score:`${session.score}/${session.totalCalculs}`});
-    enregistrerScoreMathas(session.score,session.totalCalculs,`Niveau ${session.level}`);
+    enregistrerResultatMathas(session.score,session.totalCalculs,`Niveau ${session.level}`,session.level);
     updateBar();isRecord?showRecordCelebration(session.score,session.totalCalculs):showScoreCelebration(session.score,session.totalCalculs,old)
   }
   function saveSuddenBest(){
@@ -3994,7 +4052,7 @@ function enregistrerScoreMathas(score, total, niveau) {
     }
     markHardErrors();
     if(hardSession.mode==='sudden'){
-      saveBest();window.__setLastWork&&window.__setLastWork({label:`HARD LVL ${hardSession.level} · Mort subite · ${hardSession.addends} nombres · ${hardSession.digits} chiffres`,score:String(hardSession.score)});enregistrerScoreMathas(hardSession.score,hardSession.score+1,`Hard ${hardSession.level}`);hardPhase='ended';setHardEnabled(false);clearBtn.disabled=true;
+      saveBest();window.__setLastWork&&window.__setLastWork({label:`HARD LVL ${hardSession.level} · Mort subite · ${hardSession.addends} nombres · ${hardSession.digits} chiffres`,score:String(hardSession.score)});enregistrerResultatMathas(hardSession.score,hardSession.score+1,`Hard ${hardSession.level}`,3+hardSession.level);hardPhase='ended';setHardEnabled(false);clearBtn.disabled=true;
       primary.textContent='Retour au menu HARD';
       setFeedback(`Erreur : Mort subite terminée. Score : ${hardSession.score}.`,'bad');
       updateHardHeader()
@@ -4138,12 +4196,14 @@ function enregistrerScoreMathas(score, total, niveau) {
           ? Math.ceil(lastNormal.offsetTop+lastNormal.offsetHeight+padBottom)
           : 210;
 
-        const openUp=below<normalHeight&&above>below;
+        // Le menu des niveaux s'ouvre vers le haut : le bas de la page
+        // ne peut ainsi jamais masquer les derniers choix.
+        const openUp=true;
 
-        wrap.classList.toggle('open-up',openUp);
-        wrap.classList.toggle('open-down',!openUp);
+        wrap.classList.add('open-up');
+        wrap.classList.remove('open-down');
 
-        const available=Math.max(150,(openUp?above:below)-8);
+        const available=Math.max(150,above-8);
         const shownHeight=Math.min(normalHeight,available);
         menu.style.height=`${shownHeight}px`;
         menu.style.maxHeight=`${shownHeight}px`;
