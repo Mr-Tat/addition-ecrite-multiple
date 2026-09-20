@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Addition 2 — Addition écrite de 2 à 6 nombres</title>
+<title>Addition de plusieurs nombres</title>
 <style>
 :root{
   --bg:#0b1220;--panel:#172033;--panel2:#1d2940;--ink:#f8fafc;--muted:#b8c4d8;--line:#94a3b8;
@@ -2332,28 +2332,28 @@ body.light-mode .hard-level-card h3 strong{
 
 <main class="app">
 <header>
-  <h1>Addition 2</h1>
+  <h1>Addition de plusieurs nombres</h1>
   <div class="subtitle-row">
-  <p class="subtitle">Addition écrite de 2 à 6 nombres, avec saisie chiffre par chiffre et retenues.</p>
-  <span class="app-version">v29</span>
+  <p class="subtitle">Addition écrite de plusieurs nombres, avec saisie chiffre par chiffre et retenues.</p>
+  <span class="app-version">v32</span>
 </div>
 </header>
 
 <section id="menuScreen" class="panel menu-panel">
   <div class="menu-heading">
     <h2>Choisis ton mode</h2>
-    <p>Choisis de <strong>2 à 6 nombres à additionner</strong>, puis leur taille maximale. Les nombres auront volontairement des longueurs un peu variées.</p>
+    <p>Choisis un <strong>niveau</strong>, puis ton type de partie.</p>
   </div>
 
   <div class="mode-grid">
     <article class="mode-card training">
       <div class="mode-icon">🧠</div>
       <h3 class="mode-title">Entraînement</h3>
-      <p class="mode-description">Deux additions à la fois, sans points et sans limite. Choisis de 2 à 6 nombres par addition.</p>
+      <p class="mode-description">Deux additions à la fois, sans points et sans limite.</p>
       <div class="mode-settings">
         <label for="trainingAddendCount">Nombres à additionner</label>
         <select id="trainingAddendCount"></select>
-        <label for="trainingMaxDigits">Taille MAX</label>
+        <label for="trainingMaxDigits">Niveau</label>
         <select id="trainingMaxDigits"></select>
         <button class="btn btn-training" id="startTraining" type="button">S’entraîner</button>
       </div>
@@ -2362,7 +2362,7 @@ body.light-mode .hard-level-card h3 strong{
     <article class="mode-card classic">
       <div class="mode-icon">➕</div>
       <h3 class="mode-title">Calculs</h3>
-      <p class="mode-description">Choisis une série de 4, 10 ou 20 additions, chacune composée de 2 à 6 nombres.</p>
+      <p class="mode-description">Choisis une série de 4, 10 ou 20 additions.</p>
       <div class="classic-count-wrap">
         <label>Nombre de calculs</label>
         <div class="classic-count-picker">
@@ -2375,7 +2375,7 @@ body.light-mode .hard-level-card h3 strong{
       <div class="mode-settings">
         <label for="classicAddendCount">Nombres à additionner</label>
         <select id="classicAddendCount"></select>
-        <label for="classicMaxDigits">Taille MAX</label>
+        <label for="classicMaxDigits">Niveau</label>
         <select id="classicMaxDigits"></select>
         <button class="btn btn-primary" id="startClassic" type="button">Lancer les 10 calculs</button>
       </div>
@@ -2384,12 +2384,12 @@ body.light-mode .hard-level-card h3 strong{
     <article class="mode-card sudden">
       <div class="mode-icon">⚡</div>
       <h3 class="mode-title">Mort subite</h3>
-      <p class="mode-description">Deux additions à la fois, avec 2 à 6 nombres dans chacune. La première erreur arrête la partie.</p>
+      <p class="mode-description">Deux additions à la fois. La première erreur arrête la partie.</p>
       <div class="score-memory hidden" id="bestSuddenScore"></div>
       <div class="mode-settings">
         <label for="suddenAddendCount">Nombres à additionner</label>
         <select id="suddenAddendCount"></select>
-        <label for="suddenMaxDigits">Taille MAX</label>
+        <label for="suddenMaxDigits">Niveau</label>
         <select id="suddenMaxDigits"></select>
         <button class="btn btn-gold" id="startSudden" type="button">Lancer la mort subite</button>
       </div>
@@ -2450,6 +2450,31 @@ body.light-mode .hard-level-card h3 strong{
 </section>
 </main>
 
+<script>
+function enregistrerScoreMathas(score, total, niveau) {
+  const key = "mathas_scores_" + window.location.pathname.toLowerCase();
+
+  let scores = [];
+
+  try {
+    scores = JSON.parse(localStorage.getItem(key)) || [];
+  } catch {
+    scores = [];
+  }
+
+  scores.unshift({
+    score,
+    total,
+    niveau,
+    date: new Date().toISOString()
+  });
+
+  localStorage.setItem(
+    key,
+    JSON.stringify(scores.slice(0, 3))
+  );
+}
+</script>
 <script>
 (() => {
   const $=id=>document.getElementById(id);
@@ -2581,13 +2606,12 @@ body.light-mode .hard-level-card h3 strong{
   function markRulerUsed(){
     if(!session||(session.mode!=='classic'&&session.mode!=='sudden'))return;
     session.rulerUsed=true;const u=rulerUsageStore();
+    const levelKey=`level${session.level}`;
     if(session.mode==='classic'){
-      u.classic[session.addendCount]??={};
-      u.classic[session.addendCount][session.maxDigits]??={};
-      u.classic[session.addendCount][session.maxDigits][session.totalCalculs]=true
+      u.classic[levelKey]??={};
+      u.classic[levelKey][session.totalCalculs]=true
     }else{
-      u.sudden[session.addendCount]??={};
-      u.sudden[session.addendCount][session.maxDigits]=true
+      u.sudden[levelKey]=true
     }
     safeSet(STORAGE.rulerUsage,u)
   }
@@ -2617,10 +2641,14 @@ body.light-mode .hard-level-card h3 strong{
 
   /* MENU / SCORES */
   function fillSelect(s){
-    for(let n=2;n<=7;n++){
-      const o=document.createElement('option');o.value=n;o.textContent=`${n} chiffres max`;s.appendChild(o)
-    }
+    [[5,'Niveau 1'],[6,'Niveau 2'],[7,'Niveau 3']].forEach(([value,label])=>{
+      const o=document.createElement('option');o.value=value;o.textContent=label;s.appendChild(o)
+    })
   }
+  function normalizeLevelMax(v){v=+v||5;return v<=5?5:v===6?6:7}
+  function normalLevelFromMax(v){return +v===5?1:+v===6?2:3}
+  function levelAddendChoices(level){return level===1?[3,4]:level===2?[4,5]:[5,6]}
+  function randomAddendCount(level){const choices=levelAddendChoices(level);return choices[rnd(0,choices.length-1)]}
   function fillAddendSelect(s){
     for(let n=2;n<=5;n++){
       const o=document.createElement('option');o.value=n;o.textContent=`${n} nombres`;s.appendChild(o)
@@ -2633,9 +2661,9 @@ body.light-mode .hard-level-card h3 strong{
     classicMax:5,suddenMax:5,trainingMax:5,classicCount:10,
     classicAddends:3,suddenAddends:3,trainingAddends:3
   });
-  classicMaxDigits.value=settings.classicMax||5;
-  suddenMaxDigits.value=settings.suddenMax||5;
-  trainingMaxDigits.value=settings.trainingMax||5;
+  classicMaxDigits.value=normalizeLevelMax(settings.classicMax);
+  suddenMaxDigits.value=normalizeLevelMax(settings.suddenMax);
+  trainingMaxDigits.value=normalizeLevelMax(settings.trainingMax);
   classicAddendCount.value=settings.classicAddends||3;
   suddenAddendCount.value=settings.suddenAddends||3;
   trainingAddendCount.value=settings.trainingAddends||3;
@@ -2662,36 +2690,26 @@ body.light-mode .hard-level-card h3 strong{
   function suddenScoreStore(){return safeGet(STORAGE.sudden,{})}
 
   function renderClassicScores(){
-    const addends=+classicAddendCount.value;
-    const scores=classicScoreStore()[addends]||{};
-    const usage=(rulerUsageStore().classic[addends]||{});
-    const rows=[];
-    for(let n=2;n<=8;n++){
-      const row=scores[n];if(!row)continue;
-      const used=usage[n]||{};
+    const scores=(classicScoreStore().levels||{}),usage=rulerUsageStore().classic,rows=[];
+    for(let level=1;level<=3;level++){
+      const row=scores[level];if(!row)continue;const used=usage[`level${level}`]||{};
       const pills=[4,10,20].map(c=>{
-        const v=Number(row[c]);
-        return Number.isFinite(v)?`<span class="classic-best-pill score-${c}${used[c]?' ruler-used-score':''}">${v}/${c}</span>`:''
+        const v=Number(row[c]);return Number.isFinite(v)?`<span class="classic-best-pill score-${c}${used[c]?' ruler-used-score':''}">${v}/${c}</span>`:''
       }).filter(Boolean);
-      if(pills.length)rows.push(`<div class="classic-best-row"><span>${n} chiffres max</span><div class="classic-best-line">${pills.join('')}</div></div>`)
+      if(pills.length)rows.push(`<div class="classic-best-row"><span>Niveau ${level}</span><div class="classic-best-line">${pills.join('')}</div></div>`)
     }
     if(!rows.length){bestClassicScore.innerHTML='';bestClassicScore.classList.add('hidden');return}
-    bestClassicScore.innerHTML=`<div class="score-memory-title">Meilleurs scores · ${addends} nombres</div>`+rows.join('');
-    bestClassicScore.classList.remove('hidden')
+    bestClassicScore.innerHTML='<div class="score-memory-title">Meilleurs scores</div>'+rows.join('');bestClassicScore.classList.remove('hidden')
   }
 
   function renderSuddenScores(){
-    const addends=+suddenAddendCount.value;
-    const scores=suddenScoreStore()[addends]||{};
-    const usage=(rulerUsageStore().sudden[addends]||{});
-    const rows=[];
-    for(let n=2;n<=8;n++){
-      const v=Number(scores[n]);
-      if(Number.isFinite(v))rows.push(`<div class="score-line"><span>${n} chiffres max</span><strong class="${usage[n]?'ruler-used-score':''}">${v}</strong></div>`)
+    const scores=(suddenScoreStore().levels||{}),usage=rulerUsageStore().sudden,rows=[];
+    for(let level=1;level<=3;level++){
+      const v=Number(scores[level]);
+      if(Number.isFinite(v))rows.push(`<div class="score-line"><span>Niveau ${level}</span><strong class="${usage[`level${level}`]?'ruler-used-score':''}">${v}</strong></div>`)
     }
     if(!rows.length){bestSuddenScore.innerHTML='';bestSuddenScore.classList.add('hidden');return}
-    bestSuddenScore.innerHTML=`<div class="score-memory-title">Meilleurs scores · ${addends} nombres</div>`+rows.join('');
-    bestSuddenScore.classList.remove('hidden')
+    bestSuddenScore.innerHTML='<div class="score-memory-title">Meilleurs scores</div>'+rows.join('');bestSuddenScore.classList.remove('hidden')
   }
   function refreshMenuScores(){renderClassicScores();renderSuddenScores()}
 
@@ -2754,14 +2772,14 @@ body.light-mode .hard-level-card h3 strong{
   function startSession(mode){
     setScoreRulerVisible(false);saveSettings();
     const maxDigits=mode==='classic'?+classicMaxDigits.value:mode==='sudden'?+suddenMaxDigits.value:+trainingMaxDigits.value;
-    const addendCount=mode==='classic'?+classicAddendCount.value:mode==='sudden'?+suddenAddendCount.value:+trainingAddendCount.value;
-    session={mode,maxDigits,addendCount,totalCalculs:mode==='classic'?selectedClassicCount():null,score:0,completed:0,rulerUsed:false};
+    const level=normalLevelFromMax(maxDigits);
+    session={mode,maxDigits,level,totalCalculs:mode==='classic'?selectedClassicCount():null,score:0,completed:0,rulerUsed:false};
     menuScreen.classList.add('hidden');gameScreen.classList.remove('hidden');makePair()
   }
   function goMenu(){removeCelebrations();setScoreRulerVisible(false);gameScreen.classList.add('hidden');menuScreen.classList.remove('hidden');refreshMenuScores();window.scrollTo({top:0,behavior:'smooth'})}
   function makePair(){
     removeCelebrations();clearHint();
-    states=[generateAddition(session.maxDigits,session.addendCount),generateAddition(session.maxDigits,session.addendCount)];phase='answering';
+    states=[0,1].map(()=>{const addendCount=randomAddendCount(session.level);const s=generateAddition(session.maxDigits,addendCount);s.addendCount=addendCount;return s});phase='answering';
     active={kind:'answer',calc:0,col:0};calculationsPair.innerHTML='';states.forEach((s,i)=>renderCalc(s,i));
     setPrimaryLabel('Valider');resetBtn.disabled=false;setNumpadDisabled(false);hintBtn.classList.toggle('hidden',session.mode!=='training');
     updateInstruction();updateBar();setFeedback('Commence par les unités du calcul 1.','');focusAnswer(0,0)
@@ -2770,7 +2788,7 @@ body.light-mode .hard-level-card h3 strong{
   function renderCalc(s,i){
     const box=document.createElement('div');box.className='calc-box';box.dataset.calc=i;
     const lab=document.createElement('div');lab.className='calc-label';
-    lab.textContent=`Calcul ${session.completed+i+1} · ${session.addendCount} nombres`;
+    lab.textContent=`Calcul ${session.completed+i+1} · ${s.addendCount} nombres`;
     box.appendChild(lab);
 
     const op=document.createElement('div');op.className='operation';op.dataset.calc=i;
@@ -2980,7 +2998,7 @@ body.light-mode .hard-level-card h3 strong{
           lockCalc(i);status(i,'Correct','ok');session.score++;session.completed++;newly++;saveSuddenBest()
         }else{
           markErrorsForCorrection(i);phase='ended';setNumpadDisabled(true);resetBtn.disabled=true;setPrimaryLabel('Retour au menu');
-          saveSuddenBest();window.__setLastWork&&window.__setLastWork({label:`Mort subite · ${session.addendCount} nombres · ${session.maxDigits} chiffres`,score:String(session.score)});status(i,'Erreur : partie terminée','bad');setFeedback(`Mort subite terminée. Score : ${session.score}.`,'bad');updateBar();return
+          saveSuddenBest();window.__setLastWork&&window.__setLastWork({label:`Mort subite · Niveau ${session.level}`,score:String(session.score)});enregistrerScoreMathas(session.score,session.score+1,`Niveau ${session.level}`);status(i,'Erreur : partie terminée','bad');setFeedback(`Mort subite terminée. Score : ${session.score}.`,'bad');updateBar();return
         }
       }
       if(states.every(s=>s.solved)){
@@ -3077,21 +3095,21 @@ body.light-mode .hard-level-card h3 strong{
 
   /* SCORES */
   function finishClassic(){
-    const scores=classicScoreStore();
-    scores[session.addendCount]??={};scores[session.addendCount][session.maxDigits]??={};
-    const bucket=scores[session.addendCount][session.maxDigits];
+    const scores=classicScoreStore();scores.levels??={};scores.levels[session.level]??={};
+    const bucket=scores.levels[session.level];
     const old=Number(bucket[session.totalCalculs]),isRecord=!Number.isFinite(old)||session.score>old;
     if(isRecord)bucket[session.totalCalculs]=session.score;
     safeSet(STORAGE.classic,scores);
     phase='ended';setNumpadDisabled(true);resetBtn.disabled=true;setPrimaryLabel('Retour au menu');
     setFeedback(isRecord?`Nouveau record : ${session.score}/${session.totalCalculs} !`:`Série terminée : ${session.score}/${session.totalCalculs}.`,'ok');
-    window.__setLastWork&&window.__setLastWork({label:`Calculs · ${session.addendCount} nombres · ${session.maxDigits} chiffres`,score:`${session.score}/${session.totalCalculs}`});
+    window.__setLastWork&&window.__setLastWork({label:`Calculs · Niveau ${session.level}`,score:`${session.score}/${session.totalCalculs}`});
+    enregistrerScoreMathas(session.score,session.totalCalculs,`Niveau ${session.level}`);
     updateBar();isRecord?showRecordCelebration(session.score,session.totalCalculs):showScoreCelebration(session.score,session.totalCalculs,old)
   }
   function saveSuddenBest(){
-    const scores=suddenScoreStore();scores[session.addendCount]??={};
-    const bucket=scores[session.addendCount],old=Number(bucket[session.maxDigits]);
-    if(!Number.isFinite(old)||session.score>old){bucket[session.maxDigits]=session.score;safeSet(STORAGE.sudden,scores)}
+    const scores=suddenScoreStore();scores.levels??={};
+    const old=Number(scores.levels[session.level]);
+    if(!Number.isFinite(old)||session.score>old){scores.levels[session.level]=session.score;safeSet(STORAGE.sudden,scores)}
   }
 
   /* INDICE ENTRAÎNEMENT : uniquement la retenue */
@@ -3124,7 +3142,7 @@ body.light-mode .hard-level-card h3 strong{
   /* BARRE / AIDE */
   function updateInstruction(){
     const mode=session.mode==='training'?'En entraînement, le bouton Indice montre uniquement où placer la retenue.':session.mode==='classic'?'Une erreur enlève le point de ce calcul, mais elle doit être corrigée avant de continuer.':'La première erreur termine la partie.';
-    instructionText.innerHTML=`<strong>${session.addendCount} nombres à additionner.</strong> Commence par les unités. Écris le chiffre des unités de la somme de la colonne. S’il reste une ou plusieurs dizaines, écris ensuite cette retenue dans la petite case au-dessus de la colonne de gauche. ${mode}`
+    instructionText.innerHTML=`<strong>Niveau ${session.level}.</strong> Commence par les unités. Écris le chiffre des unités de la somme de la colonne. S’il reste une ou plusieurs dizaines, écris ensuite cette retenue dans la petite case au-dessus de la colonne de gauche. ${mode}`
   }
   function updateBar(){
     if(session.mode==='classic'){
@@ -3208,7 +3226,7 @@ body.light-mode .hard-level-card h3 strong{
 
   /* ---------- Menu simplifié ---------- */
   menuGrid.classList.add('compact-grid');
-  if(menuHeading)menuHeading.innerHTML='Choisis les réglages, puis touche directement le mode voulu.';
+  if(menuHeading)menuHeading.innerHTML='Choisis un <strong>niveau</strong>, puis touche directement le mode voulu.';
 
   settingsCard.classList.remove('training');
   settingsCard.classList.add('settings-card');
@@ -3218,21 +3236,19 @@ body.light-mode .hard-level-card h3 strong{
   const settingsWrap=settingsCard.querySelector('.mode-settings');
   if(settingsIcon)settingsIcon.textContent='⚙️';
   if(settingsTitle)settingsTitle.textContent='Réglages';
-  if(settingsDesc)settingsDesc.textContent='Les mêmes réglages sont utilisés dans tous les modes.';
+  if(settingsDesc)settingsDesc.textContent='Le même niveau est utilisé dans tous les modes.';
 
-  // On réutilise les contrôles "Entraînement" comme contrôles communs visibles.
+  // Un seul réglage visible : le niveau. Les paramètres techniques restent internes.
   settingsWrap.innerHTML='';
-  const addLabel=document.createElement('label');
-  addLabel.htmlFor='trainingAddendCount';
-  addLabel.textContent='Nombres à additionner';
   const maxLabel=document.createElement('label');
   maxLabel.htmlFor='trainingMaxDigits';
-  maxLabel.textContent='Taille des nombres';
+  maxLabel.textContent='Niveau';
   const sharedNote=document.createElement('p');
   sharedNote.className='shared-note';
-  sharedNote.textContent='De 2 à 6 nombres · de 2 à 8 chiffres max.';
-  settingsWrap.append(maxLabel,trainingMax,addLabel,trainingAdd,sharedNote,startTraining);
+  sharedNote.textContent='Le nombre de termes et leur taille sont choisis automatiquement selon le niveau.';
+  settingsWrap.append(maxLabel,trainingMax,sharedNote,startTraining);
   startTraining.style.display='none';
+  trainingAdd.style.display='none';
 
   const classicTitle=classicCard.querySelector('.mode-title');
   const classicDesc=classicCard.querySelector('.mode-description');
@@ -3269,9 +3285,12 @@ body.light-mode .hard-level-card h3 strong{
     const value=trainingMax.value;
     classicMax.value=value;
     suddenMax.value=value;
-    // Un seul événement sur un contrôle caché suffit à sauvegarder et rafraîchir.
+    const level=normalLevelFromMaxForMenu(value);
+    const representative=level===1?'3':level===2?'4':'5';
+    trainingAdd.value=classicAdd.value=suddenAdd.value=representative;
     notifyHidden(classicMax);
   }
+  function normalLevelFromMaxForMenu(v){return +v===5?1:+v===6?2:3}
 
   function syncAddends(){
     const value=trainingAdd.value;
@@ -3283,9 +3302,10 @@ body.light-mode .hard-level-card h3 strong{
   trainingMax.addEventListener('change',syncMax);
   trainingAdd.addEventListener('change',syncAddends);
 
+  // Aligne aussi les anciens contrôles cachés sur le niveau initial.
+  syncMax();
   // Persiste une fois les valeurs unifiées, sans boucle.
   notifyHidden(classicMax);
-  notifyHidden(classicAdd);
 
   /* ---------- Lancement direct ---------- */
   trainingChoice.addEventListener('click',()=>{
@@ -3352,7 +3372,7 @@ body.light-mode .hard-level-card h3 strong{
 </script>
 <script>
 (() => {
-  const CFG = {"type": "addition", "title": "Addition 2", "storage": "addition2_hard_sudden_v1", "levels": [{"level": 1, "digits": 10, "addends": 5}, {"level": 2, "digits": 12, "addends": 6}, {"level": 3, "digits": 14, "addends": 7}], "hardSelects": ["trainingMaxDigits", "trainingAddendCount"]};
+  const CFG = {"type": "addition", "title": "Addition de plusieurs nombres", "storage": "addition2_hard_sudden_v2", "legacyStorage": "addition2_hard_sudden_v1", "levels": [{"level": 1, "digits": 12, "addends": 6}, {"level": 2, "digits": 14, "addends": 7}], "hardSelects": ["trainingMaxDigits"]};
   const menuScreen=document.getElementById('menuScreen');
   const gameScreen=document.getElementById('gameScreen');
   const app=document.querySelector('.app');
@@ -3504,7 +3524,16 @@ body.light-mode .hard-level-card h3 strong{
 
   let hardSession=null, hardState=null, hardActive=null, hardPhase='answering';
 
-  function bestStore(){return safeGet(CFG.storage,{})}
+  function bestStore(){
+    const current=safeGet(CFG.storage,null);
+    if(current&&typeof current==='object')return current;
+    const legacy=safeGet(CFG.legacyStorage,{});
+    const migrated={};
+    if(Number.isFinite(Number(legacy?.["2"])))migrated["1"]=Number(legacy["2"]);
+    if(Number.isFinite(Number(legacy?.["3"])))migrated["2"]=Number(legacy["3"]);
+    safeSet(CFG.storage,migrated);
+    return migrated
+  }
   function saveBest(){
     if(!hardSession||hardSession.mode!=='sudden')return;
     const s=bestStore(),k=String(hardSession.level);
@@ -3965,7 +3994,7 @@ body.light-mode .hard-level-card h3 strong{
     }
     markHardErrors();
     if(hardSession.mode==='sudden'){
-      saveBest();window.__setLastWork&&window.__setLastWork({label:`HARD LVL ${hardSession.level} · Mort subite · ${hardSession.addends} nombres · ${hardSession.digits} chiffres`,score:String(hardSession.score)});hardPhase='ended';setHardEnabled(false);clearBtn.disabled=true;
+      saveBest();window.__setLastWork&&window.__setLastWork({label:`HARD LVL ${hardSession.level} · Mort subite · ${hardSession.addends} nombres · ${hardSession.digits} chiffres`,score:String(hardSession.score)});enregistrerScoreMathas(hardSession.score,hardSession.score+1,`Hard ${hardSession.level}`);hardPhase='ended';setHardEnabled(false);clearBtn.disabled=true;
       primary.textContent='Retour au menu HARD';
       setFeedback(`Erreur : Mort subite terminée. Score : ${hardSession.score}.`,'bad');
       updateHardHeader()
