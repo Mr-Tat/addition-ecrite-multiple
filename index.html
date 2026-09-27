@@ -2344,6 +2344,343 @@ body.light-mode .hard-level-card h3 strong{
   }
 }
 
+
+/* =========================================================
+   Réglette tactile de comptage — indépendante du score
+   ========================================================= */
+:root{--count-ruler-space:0px}
+#gameScreen{
+  box-sizing:border-box;
+  transition:margin-left .22s ease,width .22s ease;
+}
+body.count-ruler-open #gameScreen{
+  margin-left:var(--count-ruler-space);
+  width:calc(100% - var(--count-ruler-space));
+}
+.score-ruler{
+  left:8px !important;
+  top:50% !important;
+  bottom:auto !important;
+  width:max-content !important;
+  height:auto !important;
+  max-height:calc(100vh - 20px) !important;
+  transform:translateY(-50%) !important;
+  padding:9px 8px 10px !important;
+  overflow:hidden !important;
+}
+.score-ruler-title{
+  margin:0 0 7px !important;
+  text-align:center !important;
+  font-size:.78rem !important;
+  letter-spacing:.04em !important;
+}
+.score-ruler-track{
+  position:relative !important;
+  height:auto !important;
+  display:grid !important;
+  grid-auto-flow:column !important;
+  grid-auto-columns:44px !important;
+  gap:6px !important;
+  align-items:start !important;
+}
+.score-ruler-track::before{display:none !important}
+.score-ruler-column{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  min-width:44px;
+}
+.score-ruler-column::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:7px;
+  bottom:7px;
+  width:2px;
+  transform:translateX(-50%);
+  border-radius:999px;
+  background:rgba(148,163,184,.35);
+  pointer-events:none;
+}
+.score-ruler-number{
+  position:relative !important;
+  z-index:2 !important;
+  box-sizing:border-box !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:44px !important;
+  height:38px !important;
+  min-height:38px !important;
+  padding:0 !important;
+  line-height:1 !important;
+  text-align:center !important;
+  border:1px solid rgba(148,163,184,.45) !important;
+  border-radius:9px !important;
+  background:rgba(15,23,42,.94) !important;
+  color:#e5edf8 !important;
+  font-size:1rem !important;
+  font-weight:900 !important;
+  text-decoration:none !important;
+  box-shadow:0 1px 4px rgba(0,0,0,.13) !important;
+}
+.score-ruler-number::after{display:none !important}
+.score-ruler-number.current{
+  font-size:1rem !important;
+  color:#e5edf8 !important;
+  text-decoration:none !important;
+}
+.ruler-used-score,
+.score-ruler-used{
+  text-decoration:none !important;
+}
+body.light-mode .score-ruler-number{
+  background:rgba(255,255,255,.96) !important;
+  color:#26384f !important;
+  border-color:rgba(100,116,139,.34) !important;
+}
+body.light-mode .score-ruler-column::before{
+  background:rgba(100,116,139,.30);
+}
+@media(max-width:900px){
+  .score-ruler-track{grid-auto-columns:41px !important;gap:4px !important}
+  .score-ruler-column{min-width:41px}
+  .score-ruler-number{
+    width:41px !important;
+    height:36px !important;
+    min-height:36px !important;
+    font-size:.94rem !important;
+  }
+}
+
+
+/* =========================================================
+   Réglette v2 — nombres reliés par une ligne, sans cases
+   ========================================================= */
+.score-ruler-track{grid-auto-columns:48px !important;gap:8px !important}
+.score-ruler-column{min-width:48px !important;gap:0 !important;padding:2px 0 !important}
+.score-ruler-column::before{left:8px !important;top:14px !important;bottom:14px !important;width:3px !important;background:rgba(148,163,184,.55) !important}
+.score-ruler-number,.score-ruler-number.current{
+  position:relative !important;width:48px !important;height:35px !important;min-height:35px !important;
+  display:flex !important;align-items:center !important;justify-content:flex-start !important;
+  padding:0 0 0 19px !important;border:0 !important;border-radius:0 !important;
+  background:transparent !important;box-shadow:none !important;color:#e5edf8 !important;
+  font-size:1.04rem !important;font-weight:900 !important;line-height:1 !important;text-align:left !important;text-decoration:none !important
+}
+.score-ruler-number::before{
+  content:"" !important;position:absolute !important;left:4px !important;top:50% !important;
+  width:9px !important;height:9px !important;transform:translateY(-50%) !important;border-radius:999px !important;
+  background:#94a3b8 !important;box-shadow:0 0 0 3px rgba(15,23,42,.82) !important
+}
+.score-ruler-number::after{display:none !important}
+body.light-mode .score-ruler-number,body.light-mode .score-ruler-number.current{background:transparent !important;color:#26384f !important;border:0 !important}
+body.light-mode .score-ruler-number::before{background:#64748b !important;box-shadow:0 0 0 3px rgba(255,255,255,.92) !important}
+body.light-mode .score-ruler-column::before{background:rgba(100,116,139,.52) !important}
+
+/* Flèche de déplacement horizontal — plus grande et cliquable */
+.pair-scroll.show-scroll-arrow::after{display:none !important}
+.main-workspace{position:relative !important}
+.pair-scroll-arrow{
+  position:absolute;z-index:80;width:68px;height:68px;display:flex;align-items:center;justify-content:center;
+  border-radius:999px;border:2px solid rgba(255,255,255,.30);background:rgba(0,0,0,.72);color:#fff;
+  font:950 2.15rem/1 inherit;box-shadow:0 10px 30px rgba(0,0,0,.35);cursor:pointer;user-select:none;touch-action:manipulation;
+  transform:translateY(-50%);animation:bigScrollArrowPulse 1.05s ease-in-out infinite
+}
+.pair-scroll-arrow.hidden{display:none !important}
+@keyframes bigScrollArrowPulse{0%,100%{opacity:.58;transform:translateY(-50%) translateX(0) scale(1)}50%{opacity:1;transform:translateY(-50%) translateX(6px) scale(1.05)}}
+body.light-mode .pair-scroll-arrow{background:rgba(30,41,59,.88);border-color:rgba(255,255,255,.74)}
+
+/* Niveau et scores plus visibles */
+.session-mode{font-size:1.08rem !important;font-weight:950 !important}
+#sessionScore{font-size:1.30rem !important;font-weight:1000 !important;padding:10px 15px !important}
+#sessionProgress{font-size:1.05rem !important;font-weight:900 !important}
+.score-memory{font-size:1.02rem !important;font-weight:900 !important}
+.feedback.ok,.feedback.bad{font-size:1.08rem !important;font-weight:900 !important}
+
+/* HARD — score géant + numéro du calcul très visible */
+.hard-session-stats{display:flex;align-items:center;justify-content:flex-end;gap:14px;flex-wrap:wrap}
+.hard-session-score{
+  min-width:150px;padding:7px 16px;border-radius:17px;text-align:center;color:#fff5f6;
+  background:rgba(117,24,42,.42);border:1px solid rgba(244,112,134,.40);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 8px 22px rgba(0,0,0,.18);
+  font-size:clamp(2.45rem,5.2vw,4.8rem);line-height:.95;font-weight:1000;letter-spacing:-.045em
+}
+.hard-session-score.no-score{min-width:0;font-size:1.05rem;letter-spacing:0;padding:10px 14px;color:#e8bac1}
+.hard-session-counter{
+  min-width:118px;padding:10px 15px;border-radius:15px;text-align:center;background:rgba(255,255,255,.09);
+  border:1px solid rgba(255,255,255,.15);color:#fff3f5;font-size:1.35rem;line-height:1;font-weight:1000
+}
+.hard-session-title{font-size:1.28rem !important}
+.hard-calc-label{font-size:1.12rem !important;font-weight:950 !important}
+@media(max-width:850px){
+  .hard-session-bar{grid-template-columns:1fr auto !important}
+  .hard-session-stats{grid-column:1 / -1;grid-row:2;justify-content:flex-start}
+  .hard-session-score{font-size:clamp(2.25rem,10vw,4rem)}
+}
+
+
+/* =========================================================
+   VERSION 2.0
+   ========================================================= */
+
+/* Niveau regroupé avec les bulles d'informations à droite */
+.session-bar{
+  grid-template-columns:1fr auto auto auto auto auto !important;
+}
+.session-level-pill{
+  font-size:1.02rem !important;
+  font-weight:950 !important;
+  padding:9px 14px !important;
+  border-width:2px !important;
+  border-color:rgba(129,140,248,.72) !important;
+  background:rgba(49,46,129,.42) !important;
+  color:#eef2ff !important;
+}
+body.light-mode .session-level-pill{
+  border-color:#a5b4fc !important;
+  background:#eef2ff !important;
+  color:#3730a3 !important;
+}
+
+/* Réglette : les nombres montent du bas vers le haut */
+.score-ruler-column{
+  flex-direction:column-reverse !important;
+}
+.score-ruler-number,
+.score-ruler-number.current{
+  height:36px !important;
+  min-height:36px !important;
+}
+
+/* Flèche interne beaucoup plus grande */
+.pair-scroll-arrow{
+  width:76px !important;
+  height:76px !important;
+  font-size:4.25rem !important;
+  font-weight:1000 !important;
+  line-height:.72 !important;
+  padding:0 0 7px 0 !important;
+}
+
+/* Record HARD : nombre géant dans une case dédiée */
+.hard-record{
+  min-height:0 !important;
+  margin:10px 0 18px !important;
+  display:flex !important;
+  align-items:center !important;
+  gap:14px !important;
+  color:#eab1bb !important;
+}
+.hard-record-label{
+  flex:1;
+  min-width:0;
+  font-size:.88rem;
+  line-height:1.15;
+  font-weight:850;
+  color:#eab1bb;
+}
+.hard-record-value{
+  flex:0 0 auto;
+  min-width:92px;
+  height:78px;
+  padding:0 15px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:16px;
+  border:2px solid rgba(251,113,133,.72);
+  background:linear-gradient(180deg,rgba(126,31,48,.82),rgba(76,18,30,.94));
+  color:#fff6f7;
+  font-size:clamp(3rem,5.5vw,4.5rem);
+  line-height:1;
+  font-weight:1000;
+  letter-spacing:-.055em;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 8px 22px rgba(0,0,0,.22),
+    0 0 20px rgba(244,63,94,.12);
+}
+body.light-mode .hard-record-value{
+  border-color:#be5365 !important;
+  background:linear-gradient(180deg,#fff0f2,#f6d9df) !important;
+  color:#7f1d2d !important;
+}
+
+/* Le score pendant la Mort subite reste lui aussi extrêmement visible */
+.hard-session-score:not(.no-score){
+  min-width:190px !important;
+  padding:10px 20px !important;
+  font-size:clamp(3.6rem,7vw,6.4rem) !important;
+  border-width:2px !important;
+}
+
+
+/* =========================================================
+   PROGRESSION DES NIVEAUX
+   Niveau 2 <- 8/10 ou 16/20 au niveau 1
+   Niveau 3 <- 8/10 ou 16/20 au niveau 2
+   HARD     <- 10/10 ou 20/20 aux niveaux 1, 2 ET 3
+   ========================================================= */
+.slide-option.progress-locked,
+.level-option.progress-locked,
+.slide-option:disabled,
+.level-option:disabled{
+  color:#73808d !important;
+  opacity:.48 !important;
+  cursor:not-allowed !important;
+  filter:saturate(.35) !important;
+  background:rgba(90,100,110,.07) !important;
+}
+.slide-option.hard-option.progress-locked,
+.level-option.hard.progress-locked{
+  color:#88777c !important;
+  background:rgba(83,57,63,.13) !important;
+}
+select option:disabled{color:#777 !important}
+
+
+/* ---------- Master mode : accès temporaire de test ---------- */
+.master-mode-hotspot{
+  position:fixed;left:6px;bottom:6px;z-index:20050;
+  width:25px;height:25px;padding:0;border-radius:8px;
+  border:1px solid rgba(255,255,255,.09);
+  background:rgba(8,13,20,.28);color:rgba(255,255,255,.28);
+  font:900 11px/1 system-ui,sans-serif;cursor:pointer;
+  opacity:.38;backdrop-filter:blur(5px);
+  transition:opacity .18s ease,background .18s ease,color .18s ease,box-shadow .18s ease;
+}
+.master-mode-hotspot:hover,.master-mode-hotspot:focus-visible{opacity:.9;color:#fff;background:rgba(15,23,34,.82)}
+.master-mode-hotspot.master-active{
+  opacity:.92;color:#fff3b0;border-color:rgba(255,209,102,.46);
+  background:rgba(91,65,10,.72);box-shadow:0 0 15px rgba(255,209,102,.15)
+}
+.master-mode-panel{
+  position:fixed;left:8px;bottom:38px;z-index:20060;width:min(300px,calc(100vw - 16px));
+  padding:13px;border-radius:15px;border:1px solid rgba(255,255,255,.16);
+  background:rgba(8,14,22,.96);color:#eef6ff;box-shadow:0 18px 46px rgba(0,0,0,.42);
+  backdrop-filter:blur(13px);font-family:system-ui,sans-serif
+}
+.master-mode-panel[hidden]{display:none!important}
+.master-mode-title{font-weight:1000;font-size:.9rem;margin-bottom:4px}
+.master-mode-note{font-size:.72rem;line-height:1.3;color:#9eb1c5;margin-bottom:9px}
+.master-mode-row{display:flex;gap:6px}
+.master-mode-input{
+  min-width:0;flex:1;padding:8px 9px;border-radius:9px;border:1px solid rgba(255,255,255,.17);
+  background:rgba(255,255,255,.07);color:#fff;outline:none;font:800 .82rem system-ui,sans-serif
+}
+.master-mode-input:focus{border-color:#81b8df;box-shadow:0 0 0 3px rgba(129,184,223,.10)}
+.master-mode-action{
+  border:0;border-radius:9px;padding:8px 10px;background:#315f79;color:#fff;font:900 .76rem system-ui,sans-serif;cursor:pointer
+}
+.master-mode-action.master-off{background:#743344}
+.master-mode-status{min-height:16px;margin-top:7px;font-size:.7rem;font-weight:850;color:#9fd9c7}
+.master-mode-status.bad{color:#ff9aa8}
+body.light-mode .master-mode-panel{background:rgba(248,252,255,.98);color:#173047;border-color:#c9d8e5}
+body.light-mode .master-mode-note{color:#60778d}
+body.light-mode .master-mode-input{background:#fff;color:#173047;border-color:#c9d8e5}
+body.light-mode .master-mode-hotspot{background:rgba(255,255,255,.56);color:rgba(25,48,71,.40);border-color:rgba(25,48,71,.12)}
+
 </style>
 </head>
 <body>
@@ -2354,7 +2691,7 @@ body.light-mode .hard-level-card h3 strong{
   <h1>Addition de plusieurs nombres</h1>
   <div class="subtitle-row">
   <p class="subtitle">Addition écrite de plusieurs nombres, avec saisie chiffre par chiffre et retenues.</p>
-  <span class="app-version">v35</span>
+  <span class="app-version">v2.3</span>
 </div>
 </header>
 
@@ -2419,14 +2756,15 @@ body.light-mode .hard-level-card h3 strong{
 <section id="gameScreen" class="hidden">
   <div class="panel session-bar">
     <div class="session-mode" id="sessionMode">➕ Calculs</div>
+    <div class="session-pill session-level-pill" id="sessionLevel">Niveau 2</div>
     <div class="session-pill" id="sessionProgress">1–2 / 10</div>
     <div class="session-pill" id="sessionScore">Score : 0 / 10</div>
-    <button class="btn btn-secondary score-ruler-btn hidden" id="scoreRulerBtn" type="button">📏 Afficher l’échelle</button>
+    <button class="btn btn-secondary score-ruler-btn hidden" id="scoreRulerBtn" type="button">📏 Afficher la réglette</button>
     <button class="btn btn-secondary menu-btn" id="menuBtn" type="button">Menu</button>
   </div>
 
   <aside class="score-ruler hidden" id="scoreRuler" aria-hidden="true">
-    <div class="score-ruler-title" id="scoreRulerTitle">Score</div>
+    <div class="score-ruler-title" id="scoreRulerTitle">Réglette</div>
     <div class="score-ruler-track" id="scoreRulerTrack"></div>
   </aside>
 
@@ -2542,7 +2880,7 @@ function enregistrerResultatMathas(score, total, niveau, niveauRang) {
   const startClassic=$('startClassic'),startSudden=$('startSudden'),startTraining=$('startTraining');
   const classicCountButtons=[...document.querySelectorAll('.classic-count-btn')];
   const bestClassicScore=$('bestClassicScore'),bestSuddenScore=$('bestSuddenScore');
-  const sessionModeEl=$('sessionMode'),sessionProgressEl=$('sessionProgress'),sessionScoreEl=$('sessionScore');
+  const sessionModeEl=$('sessionMode'),sessionLevelEl=$('sessionLevel'),sessionProgressEl=$('sessionProgress'),sessionScoreEl=$('sessionScore');
   const scoreRulerBtn=$('scoreRulerBtn'),scoreRuler=$('scoreRuler'),scoreRulerTrack=$('scoreRulerTrack'),scoreRulerTitle=$('scoreRulerTitle');
   const menuBtn=$('menuBtn'),calculationsPair=$('calculationsPair');
   const feedbackEl=$('feedback'),primaryBtn=$('primaryBtn'),resetBtn=$('resetBtn'),hintBtn=$('hintBtn');
@@ -2658,41 +2996,47 @@ function enregistrerResultatMathas(score, total, niveau, niveauRang) {
   /* RÉGLETTE */
   function buildScoreRuler(){
     scoreRulerTrack.innerHTML='';
-    for(let n=20;n>=0;n--){const el=document.createElement('div');el.className='score-ruler-number';el.dataset.score=n;el.textContent=n;scoreRulerTrack.appendChild(el)}
+    const ranges=[[0,9],[10,19],[20,29],[30,39]];
+    ranges.forEach(([from,to])=>{
+      const column=document.createElement('div');
+      column.className='score-ruler-column';
+      for(let n=from;n<=to;n++){
+        const el=document.createElement('div');
+        el.className='score-ruler-number';
+        el.textContent=n;
+        column.appendChild(el)
+      }
+      scoreRulerTrack.appendChild(column)
+    });
+    scoreRulerTitle.textContent='Réglette'
   }
   function rulerUsageStore(){return safeGet(STORAGE.rulerUsage,{classic:{},sudden:{}})}
   function markRulerUsed(){
-    if(!session||(session.mode!=='classic'&&session.mode!=='sudden'))return;
-    session.rulerUsed=true;const u=rulerUsageStore();
-    const levelKey=`level${session.level}`;
-    if(session.mode==='classic'){
-      u.classic[levelKey]??={};
-      u.classic[levelKey][session.totalCalculs]=true
-    }else{
-      u.sudden[levelKey]=true
-    }
-    safeSet(STORAGE.rulerUsage,u)
+    // Réglette purement visuelle : aucune influence sur le score.
   }
   function updateScoreRuler(){
     if(!session)return;
-    scoreRuler.classList.remove('total-4','total-10','total-20','total-sudden');
-    if(session.mode==='training'){
-      scoreRulerTrack.querySelectorAll('.score-ruler-number').forEach(el=>el.classList.remove('current'));
-      scoreRulerTitle.textContent='Réglette';sessionScoreEl.classList.remove('score-ruler-used');return
-    }
-    scoreRuler.classList.add(session.mode==='classic'?`total-${session.totalCalculs}`:'total-sudden');
-    const shown=Math.min(20,session.score);
-    scoreRulerTrack.querySelectorAll('.score-ruler-number').forEach(el=>el.classList.toggle('current',+el.dataset.score===shown));
-    scoreRulerTitle.textContent=session.score>20?'Score 20+':'Score';
-    sessionScoreEl.classList.toggle('score-ruler-used',!!session.rulerUsed)
+    scoreRulerTitle.textContent='Réglette';
+    scoreRulerTrack.querySelectorAll('.score-ruler-number').forEach(el=>el.classList.remove('current'));
+    sessionScoreEl.classList.remove('score-ruler-used')
   }
   function setScoreRulerVisible(show){
     const allowed=!!session&&(session.mode==='classic'||session.mode==='sudden'||session.mode==='training');
-    scoreRulerVisible=!!show&&allowed;if(scoreRulerVisible)markRulerUsed();
-    scoreRuler.classList.toggle('hidden',!scoreRulerVisible);scoreRuler.setAttribute('aria-hidden',scoreRulerVisible?'false':'true');
-    scoreRulerBtn.textContent=scoreRulerVisible?(session?.mode==='training'?'📏 Masquer la réglette':'📏 Masquer l’échelle'):(session?.mode==='training'?'📏 Afficher la réglette':'📏 Afficher l’échelle');
-    if(allowed)updateScoreRuler();
-    if(scoreRulerVisible&&session.mode!=='training')setFeedback('📏 Échelle affichée. Ce score restera souligné dans le menu pour indiquer qu’elle a été utilisée.','info')
+    scoreRulerVisible=!!show&&allowed;
+    scoreRuler.classList.toggle('hidden',!scoreRulerVisible);
+    scoreRuler.setAttribute('aria-hidden',scoreRulerVisible?'false':'true');
+    document.body.classList.toggle('count-ruler-open',scoreRulerVisible);
+    scoreRulerBtn.textContent=scoreRulerVisible?'📏 Masquer la réglette':'📏 Afficher la réglette';
+    if(scoreRulerVisible){
+      requestAnimationFrame(()=>{
+        const w=Math.ceil(scoreRuler.getBoundingClientRect().width);
+        document.documentElement.style.setProperty('--count-ruler-space',`${w+18}px`)
+      });
+      setFeedback('📏 Réglette de comptage affichée.','info')
+    }else{
+      document.documentElement.style.removeProperty('--count-ruler-space')
+    }
+    if(allowed)updateScoreRuler()
   }
   function toggleScoreRuler(){setScoreRulerVisible(!scoreRulerVisible)}
   buildScoreRuler();
@@ -3152,7 +3496,7 @@ function enregistrerResultatMathas(score, total, niveau, niveauRang) {
   }
 
   /* SCORES */
-  function finishClassic(){
+  function finishClassic(){window.__progressionUnlockRecord?.(session.level,session.score,session.totalCalculs);
     const scores=classicScoreStore();scores.levels??={};scores.levels[session.level]??={};
     const bucket=scores.levels[session.level];
     const old=Number(bucket[session.totalCalculs]),isRecord=!Number.isFinite(old)||session.score>old;
@@ -3203,6 +3547,7 @@ function enregistrerResultatMathas(score, total, niveau, niveauRang) {
     instructionText.innerHTML=`<strong>Niveau ${session.level}.</strong> Commence par les unités. Écris le chiffre des unités de la somme de la colonne. S’il reste une ou plusieurs dizaines, écris ensuite cette retenue dans la petite case au-dessus de la colonne de gauche. ${mode}`
   }
   function updateBar(){
+    sessionLevelEl.textContent=`Niveau ${session.level}`;
     if(session.mode==='classic'){
       sessionModeEl.textContent='➕ Calculs';sessionProgressEl.textContent=phase==='ended'?`${session.totalCalculs} / ${session.totalCalculs}`:`${session.completed+1}–${Math.min(session.completed+2,session.totalCalculs)} / ${session.totalCalculs}`;
       sessionScoreEl.textContent=`Score : ${session.score} / ${session.totalCalculs}`;scoreRulerBtn.classList.remove('hidden');updateScoreRuler()
@@ -3525,7 +3870,10 @@ function enregistrerResultatMathas(score, total, niveau, niveauRang) {
         <div class="hard-session-title" id="hardSessionTitle">HARD</div>
         <div class="hard-session-meta" id="hardSessionMeta"></div>
       </div>
-      <div class="hard-session-meta" id="hardSessionScore"></div>
+      <div class="hard-session-stats">
+        <div class="hard-session-score" id="hardSessionScore"></div>
+        <div class="hard-session-counter" id="hardSessionCounter"></div>
+      </div>
       <button type="button" class="hard-game-back" id="hardGameBack">← HARD</button>
     </div>
     <div class="hard-workspace">
@@ -3578,6 +3926,7 @@ function enregistrerResultatMathas(score, total, niveau, niveauRang) {
   const titleEl=document.getElementById('hardSessionTitle');
   const metaEl=document.getElementById('hardSessionMeta');
   const scoreEl=document.getElementById('hardSessionScore');
+  const counterEl=document.getElementById('hardSessionCounter');
   const calcLabel=document.getElementById('hardCalcLabel');
 
   let hardSession=null, hardState=null, hardActive=null, hardPhase='answering';
@@ -3607,7 +3956,10 @@ function enregistrerResultatMathas(score, total, niveau, niveauRang) {
       card.innerHTML=`
         <h3>HARD LVL ${l.level}</h3>
         <p class="hard-spec">${levelSpec(l)}</p>
-        <p class="hard-record">${Number.isFinite(Number(records[String(l.level)]))?`Record Mort subite : ${records[String(l.level)]}`:'Aucun record en Mort subite'}</p>
+        <div class="hard-record">
+          <span class="hard-record-label">Record<br>Mort subite</span>
+          <span class="hard-record-value">${Number.isFinite(Number(records[String(l.level)]))?records[String(l.level)]:'—'}</span>
+        </div>
         <div class="hard-mode-buttons">
           <button type="button" class="hard-start" data-level="${l.level}" data-mode="training">🧠 Entraînement</button>
           <button type="button" class="hard-start" data-level="${l.level}" data-mode="sudden">⚡ Mort subite</button>
@@ -3776,7 +4128,10 @@ function enregistrerResultatMathas(score, total, niveau, niveauRang) {
   function updateHardHeader(){
     titleEl.textContent=`${CFG.title} · HARD LVL ${hardSession.level}`;
     metaEl.textContent=`${hardSession.mode==='training'?'🧠 Entraînement':'⚡ Mort subite'} · ${levelSpec(hardSession.spec)} · 1 calcul à la fois`;
-    scoreEl.textContent=hardSession.mode==='sudden'?`Score : ${hardSession.score}`:`Calcul ${hardSession.completed+1}`
+    const sudden=hardSession.mode==='sudden';
+    scoreEl.textContent=sudden?`Score ${hardSession.score}`:'Sans points';
+    scoreEl.classList.toggle('no-score',!sudden);
+    counterEl.textContent=hardPhase==='ended'?`Calculs : ${hardSession.completed}`:`Calcul ${hardSession.completed+1}`;
   }
   function setFeedback(t,type){
     feedback.textContent=t;feedback.className=`hard-feedback${type?' '+type:''}`
@@ -4073,7 +4428,39 @@ function enregistrerResultatMathas(score, total, niveau, niveauRang) {
   refreshLastWork();
   const scroll=document.querySelector('.pair-scroll');
   const pair=document.getElementById('calculationsPair');
-  if(scroll&&pair){const updateArrow=()=>{const second=pair.querySelector('.calc-box[data-calc="1"]');if(!second){scroll.classList.remove('show-scroll-arrow');return}const waiting=second.classList.contains('waiting-for-first');const rectS=scroll.getBoundingClientRect();const rect2=second.getBoundingClientRect();const hiddenRight=rect2.left>rectS.left+24&&rect2.right>rectS.right-10;const scrollable=scroll.scrollWidth>scroll.clientWidth+20;scroll.classList.toggle('show-scroll-arrow',scrollable&&!waiting&&hiddenRight)};scroll.addEventListener('scroll',updateArrow,{passive:true});window.addEventListener('resize',updateArrow);new MutationObserver(()=>requestAnimationFrame(updateArrow)).observe(pair,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','disabled']});setTimeout(updateArrow,200);setTimeout(updateArrow,700);}
+  if(scroll&&pair){
+    const workspace=scroll.closest('.main-workspace')||scroll.parentElement;
+    const arrow=document.createElement('button');
+    arrow.type='button';
+    arrow.className='pair-scroll-arrow hidden';
+    arrow.setAttribute('aria-label','Faire défiler les calculs complètement vers la droite');
+    arrow.title='Voir la suite des calculs';
+    arrow.textContent='➜';
+    workspace.appendChild(arrow);
+    const positionArrow=()=>{
+      arrow.style.left=`${scroll.offsetLeft+scroll.clientWidth-78}px`;
+      arrow.style.top=`${scroll.offsetTop+(scroll.clientHeight/2)}px`
+    };
+    const updateArrow=()=>{
+      const second=pair.querySelector('.calc-box[data-calc="1"]');
+      const waiting=!!second&&second.classList.contains('waiting-for-first');
+      const maxScroll=Math.max(0,scroll.scrollWidth-scroll.clientWidth);
+      const scrollable=maxScroll>20;
+      const atEnd=scroll.scrollLeft>=maxScroll-5;
+      const show=!!second&&scrollable&&!waiting&&!atEnd;
+      scroll.classList.toggle('show-scroll-arrow',show);
+      arrow.classList.toggle('hidden',!show);
+      positionArrow()
+    };
+    arrow.addEventListener('click',e=>{
+      e.preventDefault();e.stopPropagation();
+      scroll.scrollTo({left:scroll.scrollWidth,behavior:'smooth'})
+    });
+    scroll.addEventListener('scroll',updateArrow,{passive:true});
+    window.addEventListener('resize',updateArrow);
+    new MutationObserver(()=>requestAnimationFrame(updateArrow)).observe(pair,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','disabled']});
+    setTimeout(updateArrow,200);setTimeout(updateArrow,700);
+  }
 })();
 </script>
 
@@ -4229,6 +4616,203 @@ function enregistrerResultatMathas(score, total, niveau, niveauRang) {
   document.addEventListener('pointerdown',e=>{
     if(!e.target.closest('.slide-select-wrap'))closeAll()
   })
+})();
+</script>
+
+
+<script>
+(()=>{
+  const PROGRESSION_KEY='mathas_progression_addition_plusieurs_v1';
+  const empty=()=>({level2:false,level3:false,perfect1:false,perfect2:false,perfect3:false,hard:false});
+  function loadProgression(){
+    try{
+      const d=JSON.parse(localStorage.getItem(PROGRESSION_KEY));
+      const p=d&&typeof d==='object'?{...empty(),...d}:empty();
+      // HARD dépend désormais uniquement d'un sans-faute en 10 ou 20 calculs
+      // obtenu au moins une fois dans chacun des trois niveaux normaux.
+      p.hard=!!(p.perfect1&&p.perfect2&&p.perfect3);
+      if(window.__masterMode){p.level2=true;p.level3=true;p.hard=true}
+      return p
+    }catch{const p=empty();if(window.__masterMode){p.level2=true;p.level3=true;p.hard=true}return p}
+  }
+  function saveProgression(d){try{localStorage.setItem(PROGRESSION_KEY,JSON.stringify(d))}catch{}}
+  function unlocked(level,p=loadProgression()){
+    if(level===1)return true;
+    if(level===2)return !!p.level2;
+    if(level===3)return !!p.level3;
+    return false
+  }
+  function qualifying(score,total){
+    score=Number(score);total=Number(total);
+    return (total===10&&score>=8)||(total===20&&score>=16)
+  }
+  function perfectQualifying(score,total){
+    score=Number(score);total=Number(total);
+    return (total===10||total===20)&&score===total
+  }
+  window.__progressionUnlockRecord=(level,score,total)=>{
+    level=Number(level);score=Number(score);total=Number(total);
+    const p=loadProgression();let changed=false;
+
+    // Les niveaux normaux gardent la règle 8/10 ou 16/20.
+    if(qualifying(score,total)){
+      if(level===1&&!p.level2){p.level2=true;changed=true}
+      else if(level===2&&!p.level3){p.level3=true;changed=true}
+    }
+
+    // Un 4/4 ne compte jamais pour le HARD : seuls 10/10 et 20/20 comptent.
+    if(level>=1&&level<=3&&perfectQualifying(score,total)){
+      const key=`perfect${level}`;
+      if(!p[key]){p[key]=true;changed=true}
+    }
+
+    const hardNow=!!(p.perfect1&&p.perfect2&&p.perfect3);
+    if(p.hard!==hardNow){p.hard=hardNow;changed=true}
+
+    if(changed){saveProgression(p);refreshProgressionLocks()}
+    return changed
+  };
+
+  function levelFromText(t){const m=String(t||'').match(/Niveau\s*([123])/i);return m?Number(m[1]):null}
+  function normalLabel(level,isLocked){return `Niveau ${level}${isLocked?' (bloqué)':''}`}
+  function hardLabel(isLocked){return isLocked?'⚠ HARD (bloqué)':'⚠ Activer HARD'}
+
+  function refreshSelect(sel,p){
+    if(!sel)return;
+    const opts=[...sel.options],normal=opts.filter(o=>levelFromText(o.textContent));
+    if(normal.length<3)return;
+    normal.forEach(o=>{
+      const level=levelFromText(o.textContent),lock=!unlocked(level,p);
+      o.disabled=lock;o.textContent=normalLabel(level,lock)
+    });
+    const h=opts.find(o=>o.value==='__hard__'||/HARD/i.test(o.textContent));
+    if(h){h.disabled=!p.hard;h.textContent=hardLabel(!p.hard)}
+    const selected=opts.find(o=>o.value===sel.value);
+    if(selected?.disabled){
+      const target=normal.filter(o=>!o.disabled).at(-1)||normal[0];
+      if(target){sel.value=target.value;sel.dispatchEvent(new Event('change',{bubbles:true}))}
+    }
+    const wrap=sel.closest('.slide-select-wrap');
+    if(wrap){
+      const buttons=[...wrap.querySelectorAll('.slide-option:not(.hard-option)')];
+      buttons.forEach((b,i)=>{
+        let level=null;
+        if(b.dataset.value){const o=opts.find(x=>x.value===b.dataset.value);level=levelFromText(o?.textContent)}
+        if(!level)level=i+1;
+        if(level<1||level>3)return;
+        const lock=!unlocked(level,p);
+        b.disabled=lock;b.classList.toggle('progress-locked',lock);b.textContent=normalLabel(level,lock);
+        b.title=lock?'Débloque ce niveau avec au moins 8/10 ou 16/20 au niveau précédent.':''
+      });
+      const hb=wrap.querySelector('.hard-option');
+      if(hb){hb.disabled=!p.hard;hb.classList.toggle('progress-locked',!p.hard);hb.textContent=hardLabel(!p.hard);hb.title=!p.hard?'Débloque HARD avec 10/10 ou 20/20 aux Niveaux 1, 2 et 3.':''}
+      const trigger=wrap.querySelector('.slide-select-button');
+      if(trigger){const o=opts.find(x=>x.value===sel.value);if(o)trigger.textContent=o.textContent}
+    }
+  }
+
+  function refreshMixed(p){
+    const sel=document.getElementById('levelSelect');
+    if(!sel)return;
+    [...sel.options].forEach(o=>{
+      const level=levelFromText(o.textContent);if(!level)return;
+      const lock=!unlocked(level,p);o.disabled=lock;o.textContent=normalLabel(level,lock)
+    });
+    if(!unlocked(Number(sel.value),p)){
+      const allowed=[...sel.options].filter(o=>!o.disabled).at(-1);
+      if(allowed)sel.value=allowed.value
+    }
+    const menu=document.getElementById('levelMenu');
+    if(menu){
+      [...menu.querySelectorAll('.level-option:not(.hard)')].forEach((b,i)=>{
+        const level=i+1,lock=!unlocked(level,p);b.disabled=lock;b.classList.toggle('progress-locked',lock);b.textContent=normalLabel(level,lock);b.title=lock?'Débloque ce niveau avec au moins 8/10 ou 16/20 au niveau précédent.':''
+      });
+      const hb=menu.querySelector('.level-option.hard');
+      if(hb){hb.disabled=!p.hard;hb.classList.toggle('progress-locked',!p.hard);hb.textContent=hardLabel(!p.hard);hb.title=!p.hard?'Débloque HARD avec 10/10 ou 20/20 aux Niveaux 1, 2 et 3.':''}
+    }
+    const btn=document.getElementById('levelBtn');if(btn)btn.textContent=`Niveau ${sel.value}`;
+    // Synchronise les réglages internes des applis qui écoutent le select.
+    sel.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+
+  function refreshProgressionLocks(){
+    const p=loadProgression();
+    const selects=[...document.querySelectorAll('#menuScreen select')].filter(s=>[...s.options].filter(o=>levelFromText(o.textContent)).length>=3);
+    selects.forEach(s=>refreshSelect(s,p));
+    refreshMixed(p)
+  }
+  window.__refreshProgressionLocks=refreshProgressionLocks;
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(refreshProgressionLocks,0));
+  else setTimeout(refreshProgressionLocks,0);
+})();
+</script>
+
+
+<button class="master-mode-hotspot" id="masterModeHotspot" type="button" aria-label="Master mode" title="Master mode">M</button>
+<div class="master-mode-panel" id="masterModePanel" hidden>
+  <div class="master-mode-title">Master mode</div>
+  <div class="master-mode-note">Accès de test temporaire. Les scores continuent d’être enregistrés normalement.</div>
+  <div class="master-mode-row" id="masterModeLoginRow">
+    <input class="master-mode-input" id="masterModePassword" type="password" autocomplete="off" placeholder="Mot de passe">
+    <button class="master-mode-action" id="masterModeUnlock" type="button">Activer</button>
+  </div>
+  <div class="master-mode-row" id="masterModeActiveRow" hidden>
+    <button class="master-mode-action master-off" id="masterModeDisable" type="button">Désactiver le Master mode</button>
+  </div>
+  <div class="master-mode-status" id="masterModeStatus"></div>
+</div>
+
+
+<script>
+(()=>{
+  const MASTER_SESSION_KEY='mathas_master_mode_session_v1_'+window.location.pathname.toLowerCase();
+  const PASS_B64='VGhlY2FrZWlzYWxpZQ==';
+  try{window.__masterMode=sessionStorage.getItem(MASTER_SESSION_KEY)==='1'}catch{window.__masterMode=false}
+
+  const hotspot=document.getElementById('masterModeHotspot');
+  const panel=document.getElementById('masterModePanel');
+  const input=document.getElementById('masterModePassword');
+  const unlock=document.getElementById('masterModeUnlock');
+  const disable=document.getElementById('masterModeDisable');
+  const loginRow=document.getElementById('masterModeLoginRow');
+  const activeRow=document.getElementById('masterModeActiveRow');
+  const status=document.getElementById('masterModeStatus');
+
+  function syncMasterUI(message=''){
+    const active=!!window.__masterMode;
+    hotspot?.classList.toggle('master-active',active);
+    if(loginRow)loginRow.hidden=active;
+    if(activeRow)activeRow.hidden=!active;
+    if(status){status.classList.remove('bad');status.textContent=message||(active?'MASTER actif · tous les niveaux sont accessibles.':'')}
+  }
+  function refreshLocks(){setTimeout(()=>window.__refreshProgressionLocks?.(),0)}
+  function activate(){
+    let ok=false;
+    try{ok=btoa(input?.value||'')===PASS_B64}catch{}
+    if(!ok){if(status){status.textContent='Mot de passe incorrect.';status.classList.add('bad')}return}
+    window.__masterMode=true;
+    try{sessionStorage.setItem(MASTER_SESSION_KEY,'1')}catch{}
+    if(input)input.value='';
+    syncMasterUI('MASTER actif · accès complet pour cette session.');
+    refreshLocks()
+  }
+  function deactivate(){
+    window.__masterMode=false;
+    try{sessionStorage.removeItem(MASTER_SESSION_KEY)}catch{}
+    syncMasterUI('Master mode désactivé.');
+    refreshLocks()
+  }
+  hotspot?.addEventListener('click',()=>{if(panel){panel.hidden=!panel.hidden;if(!panel.hidden&&!window.__masterMode)setTimeout(()=>input?.focus(),0)}syncMasterUI()});
+  unlock?.addEventListener('click',activate);
+  input?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();activate()}});
+  disable?.addEventListener('click',deactivate);
+  document.addEventListener('pointerdown',e=>{
+    if(!panel||panel.hidden)return;
+    if(e.target===hotspot||panel.contains(e.target))return;
+    panel.hidden=true
+  });
+  syncMasterUI();
+  refreshLocks();
 })();
 </script>
 
